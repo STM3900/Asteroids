@@ -1,7 +1,7 @@
 var config = {
   parent: "asteroids", // Affiche le jeu dans le div id="asteroids"
-  width: 400,
-  height: 490,
+  width: 1440,
+  height: 810,
   physics: {
     default: "arcade", // Permet d'appliquer un set de mouvements aux objets
     arcade: {
@@ -17,13 +17,81 @@ var config = {
   },
 };
 // Variables globales
+var ship;
+var cursors;
+var text;
+var bullet;
+var lastShot = 0;
+var cooldown = 500;
+
 var game = new Phaser.Game(config);
 function preload() {
   // C'est là qu'on vas charger les images et les sons
+  this.load.image("bullet", "img/laser.png");
+  this.load.image("ship", "img/ship.png");
 }
 function create() {
   // Ici on vas initialiser les variables, l'affichage ...
+
+  //Sprite de notre vaisseau
+  bullet = this.physics.add.image(13, 37, "bullet");
+  ship = this.physics.add.image(400, 300, "ship");
+
+  //On lui donne une plus petite taille
+  ship.setScale(0.3);
+
+  //Règle la méthode de décélération
+  ship.setDamping(true);
+  //Réglage de la vitesse de décélération
+  ship.setDrag(0.99);
+  //Règle la vitesse maximale de notre vaiseau
+  ship.setMaxVelocity(300);
+
+  cursors = this.input.keyboard.createCursorKeys();
+  spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+  //text = this.add.text(10, 10, "", { font: "16px Courier", fill: "#00ff00" });
 }
 function update() {
   // C'est la boucle principale du jeu
+  if (cursors.up.isDown) {
+    this.physics.velocityFromRotation(
+      ship.rotation,
+      300,
+      ship.body.acceleration
+    );
+  } else {
+    ship.setAcceleration(0);
+  }
+
+  if (cursors.left.isDown) {
+    ship.setAngularVelocity(-300);
+  } else if (cursors.right.isDown) {
+    ship.setAngularVelocity(300);
+  } else {
+    ship.setAngularVelocity(0);
+  }
+
+  //text.setText("Speed: " + ship.body.speed);
+  if (spaceBar.isDown && getCurrentTime() >= lastShot + cooldown) {
+    bullets = this.physics.add.group();
+    var currentBullet = bullets.create(ship.x, ship.y, "bullet");
+
+    currentBullet.angle = ship.angle + 90;
+    var rad = Phaser.Math.DegToRad(ship.angle);
+    this.physics.velocityFromRotation(rad, 600, currentBullet.body.velocity);
+
+    console.log(bullets);
+    lastShot = getCurrentTime();
+  }
+
+  this.physics.world.wrap(ship, 50);
+
+  // bullets.forEachExists(screenWrap, this);
+}
+
+getCurrentTime();
+
+function getCurrentTime() {
+  var time = Date.now();
+  return time;
 }
