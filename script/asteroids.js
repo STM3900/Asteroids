@@ -26,19 +26,30 @@ var cooldown = 500;
 
 var game = new Phaser.Game(config);
 function preload() {
-  // C'est là qu'on vas charger les images et les sons
+  // C'est là qu'on vas charger les images et les sons 14 16
   this.load.image("bullet", "img/laser.png");
-  this.load.image("ship", "img/ship.png");
+  this.load.spritesheet("ship", "img/sprite/shipsprite.png", {
+    frameWidth: 16,
+    frameHeight: 14,
+  });
+  // this.load.image("ship", "img/ship.png");
 }
 function create() {
   // Ici on vas initialiser les variables, l'affichage ...
 
   //Sprite de notre vaisseau
   bullet = this.physics.add.image(13, 37, "bullet");
-  ship = this.physics.add.image(400, 300, "ship");
+  ship = this.physics.add.sprite(400, 300, "ship");
+
+  this.anims.create({
+    key: "ship_movement",
+    frames: this.anims.generateFrameNumbers("ship"),
+    frameRate: 20,
+    repeat: 0,
+  });
 
   //On lui donne une plus petite taille
-  ship.setScale(0.3);
+  ship.setScale(2);
 
   //Règle la méthode de décélération
   ship.setDamping(true);
@@ -53,7 +64,9 @@ function create() {
 }
 function update() {
   // C'est la boucle principale du jeu
+
   if (cursors.up.isDown) {
+    ship.play("ship_movement", true);
     this.physics.velocityFromRotation(
       ship.rotation,
       300,
