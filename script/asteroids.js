@@ -26,11 +26,11 @@ var cooldown = 500;
 
 var game = new Phaser.Game(config);
 function preload() {
-  // C'est là qu'on vas charger les images et les sons 14 16
+  // C'est là qu'on vas charger les images et les sons 100 90
   this.load.image("bullet", "img/laser.png");
-  this.load.spritesheet("ship", "img/sprite/shipsprite.png", {
-    frameWidth: 16,
-    frameHeight: 14,
+  this.load.spritesheet("ship", "img/sprite/ship_animation.png", {
+    frameWidth: 100,
+    frameHeight: 90,
   });
   // this.load.image("ship", "img/ship.png");
 }
@@ -44,12 +44,19 @@ function create() {
   this.anims.create({
     key: "ship_movement",
     frames: this.anims.generateFrameNumbers("ship"),
-    frameRate: 20,
+    frameRate: 24,
+    repeat: 0,
+  });
+
+  this.anims.create({
+    key: "ship_stop",
+    frames: this.anims.generateFrameNumbers("ship"),
+    frameRate: 24,
     repeat: 0,
   });
 
   //On lui donne une plus petite taille
-  ship.setScale(2);
+  ship.setScale(0.5);
 
   //Règle la méthode de décélération
   ship.setDamping(true);
