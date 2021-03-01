@@ -79,8 +79,8 @@ function update() {
     currentBullet.angle = ship.angle + 90;
     var rad = Phaser.Math.DegToRad(ship.angle);
     this.physics.velocityFromRotation(rad, 600, currentBullet.body.velocity);
+    //currentBullet.events.onOutOfBounds.add(destroy, this);
 
-    console.log(bullets);
     lastShot = getCurrentTime();
   }
 
@@ -94,4 +94,9 @@ getCurrentTime();
 function getCurrentTime() {
   var time = Date.now();
   return time;
+}
+
+function destroy(sprite) {
+  sprite.destroy();
+  console.log("Sprite détruit !");
 }
