@@ -19,10 +19,13 @@ var config = {
 // Variables globales
 var ship;
 var cursors;
+var asteroid;
 var text;
+var score = 0;
 var bullet;
 var lastShot = 0;
-var cooldown = 500;
+var cooldown = 300;
+var bulletSpeed = 1000;
 var activateAnim = false;
 
 var game = new Phaser.Game(config);
@@ -33,6 +36,7 @@ function preload() {
     frameWidth: 100,
     frameHeight: 90,
   });
+  this.load.image("asteroid", "img/sprite/asteroid.png");
   // this.load.image("ship", "img/ship.png");
 }
 function create() {
@@ -42,6 +46,7 @@ function create() {
   bullet = this.physics.add.sprite(13, 37, "bullet");
   bullet.destroy();
   ship = this.physics.add.sprite(400, 300, "ship");
+  asteroid = this.physics.add.sprite(600, 600, "asteroid");
 
   this.anims.create({
     key: "ship_movement",
@@ -75,7 +80,10 @@ function create() {
 
   cursors = this.input.keyboard.createCursorKeys();
   spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-  //text = this.add.text(10, 10, "", { font: "16px Courier", fill: "#00ff00" });
+  text = this.add.text(10, 10, "", { font: "16px Courier", fill: "#00ff00" });
+  text.setText(`Score : ${score}`);
+
+  this.physics.add.overlap(ship, asteroid, killPlayer, null, this);
 }
 function update() {
   // C'est la boucle principale du jeu
@@ -106,20 +114,25 @@ function update() {
     ship.setAngularVelocity(0);
   }
 
-  //text.setText("Speed: " + ship.body.speed);
   if (spaceBar.isDown && getCurrentTime() >= lastShot + cooldown) {
     bullets = this.physics.add.group();
     var currentBullet = bullets.create(ship.x, ship.y, "bullet");
 
     currentBullet.angle = ship.angle + 90;
     var rad = Phaser.Math.DegToRad(ship.angle);
-    this.physics.velocityFromRotation(rad, 600, currentBullet.body.velocity);
+    this.physics.velocityFromRotation(
+      rad,
+      bulletSpeed,
+      currentBullet.body.velocity
+    );
     //currentBullet.events.onOutOfBounds.add(destroy, this);
 
+    this.physics.add.overlap(currentBullet, asteroid, killAsteroid, null, this);
     lastShot = getCurrentTime();
   }
 
-  this.physics.world.wrap(ship, 50);
+  this.physics.world.wrap(ship, 25);
+  this.physics.world.wrap(asteroid, 50);
 
   // bullets.forEachExists(screenWrap, this);
 }
@@ -134,4 +147,14 @@ function getCurrentTime() {
 function destroy(sprite) {
   sprite.destroy();
   console.log("Sprite détruit !");
+}
+
+function killAsteroid(projectile, asteroid) {
+  projectile.destroy();
+  score++;
+  text.setText(`Score : ${score}`);
+}
+
+function killPlayer(ship, asteroid) {
+  console.log("lol t mor");
 }
