@@ -23,11 +23,12 @@ var text;
 var bullet;
 var lastShot = 0;
 var cooldown = 500;
+var activateAnim = false;
 
 var game = new Phaser.Game(config);
 function preload() {
   // C'est là qu'on vas charger les images et les sons 100 90
-  this.load.image("bullet", "img/laser.png");
+  this.load.image("bullet", "img/sprite/bullet.png");
   this.load.spritesheet("ship", "img/sprite/ship_animation.png", {
     frameWidth: 100,
     frameHeight: 90,
@@ -38,19 +39,26 @@ function create() {
   // Ici on vas initialiser les variables, l'affichage ...
 
   //Sprite de notre vaisseau
-  bullet = this.physics.add.image(13, 37, "bullet");
+  bullet = this.physics.add.sprite(13, 37, "bullet");
+  bullet.destroy();
   ship = this.physics.add.sprite(400, 300, "ship");
 
   this.anims.create({
     key: "ship_movement",
-    frames: this.anims.generateFrameNumbers("ship"),
+    frames: this.anims.generateFrameNumbers("ship", {
+      start: 0,
+      end: 6,
+    }),
     frameRate: 24,
     repeat: 0,
   });
 
   this.anims.create({
     key: "ship_stop",
-    frames: this.anims.generateFrameNumbers("ship"),
+    frames: this.anims.generateFrameNumbers("ship", {
+      start: 6,
+      end: 0,
+    }),
     frameRate: 24,
     repeat: 0,
   });
@@ -73,7 +81,10 @@ function update() {
   // C'est la boucle principale du jeu
 
   if (cursors.up.isDown) {
-    ship.play("ship_movement", true);
+    if (!activateAnim) {
+      ship.play("ship_movement", true);
+      activateAnim = true;
+    }
     this.physics.velocityFromRotation(
       ship.rotation,
       300,
@@ -81,6 +92,10 @@ function update() {
     );
   } else {
     ship.setAcceleration(0);
+    if (activateAnim) {
+      ship.play("ship_stop", true);
+      activateAnim = false;
+    }
   }
 
   if (cursors.left.isDown) {
