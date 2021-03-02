@@ -28,6 +28,8 @@ var cooldown = 300;
 var bulletSpeed = 1000;
 var activateAnim = false;
 
+let keyA;
+
 var game = new Phaser.Game(config);
 function preload() {
   // C'est là qu'on vas charger les images et les sons 100 90
@@ -47,6 +49,7 @@ function create() {
   bullet.destroy();
   ship = this.physics.add.sprite(400, 300, "ship");
   asteroid = this.physics.add.sprite(600, 600, "asteroid");
+  asteroid.destroy();
 
   this.anims.create({
     key: "ship_movement",
@@ -80,10 +83,13 @@ function create() {
 
   cursors = this.input.keyboard.createCursorKeys();
   spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-  text = this.add.text(10, 10, "", { font: "16px Courier", fill: "#00ff00" });
+  text = this.add.text(10, 10, "", { font: "16px Courier", fill: "#ffffff" });
   text.setText(`Score : ${score}`);
 
-  this.physics.add.overlap(ship, asteroid, killPlayer, null, this);
+  keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+  asteroidsGroup = this.physics.add.group();
+
+  this.physics.add.overlap(ship, asteroidsGroup, killPlayer, null, this);
 }
 function update() {
   // C'est la boucle principale du jeu
@@ -119,20 +125,62 @@ function update() {
     var currentBullet = bullets.create(ship.x, ship.y, "bullet");
 
     currentBullet.angle = ship.angle + 90;
-    var rad = Phaser.Math.DegToRad(ship.angle);
+    let rad = Phaser.Math.DegToRad(ship.angle);
     this.physics.velocityFromRotation(
       rad,
       bulletSpeed,
       currentBullet.body.velocity
     );
-    //currentBullet.events.onOutOfBounds.add(destroy, this);
 
     this.physics.add.overlap(currentBullet, asteroid, killAsteroid, null, this);
     lastShot = getCurrentTime();
+
+    //TODO : Que les bullets se destroy à la sortie de l'écran (utiliser le config.width et height pour bricoler un truc)
+  }
+
+  if (keyA.isDown && getCurrentTime() >= lastShot + cooldown) {
+    // config.width = 1440
+    // config.height = 810
+    let posArray = [
+      {
+        x: 0 + getRandomInt(100),
+        y: 0 + getRandomInt(100),
+      },
+      {
+        x: config.width - getRandomInt(100),
+        y: 0 + getRandomInt(100),
+      },
+      {
+        x: config.width - getRandomInt(100),
+        y: config.height - getRandomInt(100),
+      },
+      {
+        x: 0 + getRandomInt(100),
+        y: config.height - getRandomInt(100),
+      },
+    ];
+
+    for (let i = 0; i < posArray.length; i++) {
+      var currentAsteroid = asteroidsGroup.create(
+        posArray[i].x,
+        posArray[i].y,
+        "asteroid"
+      );
+
+      currentAsteroid.angle = getRandomInt(360);
+      let rad = Phaser.Math.DegToRad(currentAsteroid.angle);
+      this.physics.velocityFromRotation(
+        rad,
+        200,
+        currentAsteroid.body.velocity
+      );
+
+      lastShot = getCurrentTime();
+    }
   }
 
   this.physics.world.wrap(ship, 25);
-  this.physics.world.wrap(asteroid, 50);
+  this.physics.world.wrap(asteroidsGroup, 50);
 
   // bullets.forEachExists(screenWrap, this);
 }
@@ -157,4 +205,45 @@ function killAsteroid(projectile, asteroid) {
 
 function killPlayer(ship, asteroid) {
   console.log("lol t mor");
+}
+
+function getRandomInt(max) {
+  return Math.floor(Math.random() * Math.floor(max));
+}
+
+function generateAsteroids() {
+  // config.width = 1440
+  // config.height = 810
+  let posArray = [
+    {
+      x: 0 + getRandomInt(100),
+      y: 0 + getRandomInt(100),
+    },
+    {
+      x: config.width - getRandomInt(100),
+      y: 0 + getRandomInt(100),
+    },
+    {
+      x: config.width - getRandomInt(100),
+      y: config.height - getRandomInt(100),
+    },
+    {
+      x: 0 + getRandomInt(100),
+      y: config.height - getRandomInt(100),
+    },
+  ];
+
+  for (let i = 0; i < posArray.length; i++) {
+    var currentAsteroid = asteroidsGroup.create(
+      posArray[i].x,
+      posArray[i].y,
+      "asteroid"
+    );
+
+    currentAsteroid.angle = getRandomInt(360);
+    let rad = Phaser.Math.DegToRad(currentAsteroid.angle);
+    this.physics.velocityFromRotation(rad, 200, currentAsteroid.body.velocity);
+
+    lastShot = getCurrentTime();
+  }
 }
