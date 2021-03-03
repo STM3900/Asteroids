@@ -25,7 +25,7 @@ var score = 0;
 var bullet;
 var lastShot = 0;
 var cooldown = 300;
-var bulletSpeed = 1000;
+var bulletSpeed = 1500;
 var activateAnim = false;
 
 let keyA;
@@ -132,7 +132,13 @@ function update() {
       currentBullet.body.velocity
     );
 
-    this.physics.add.overlap(currentBullet, asteroid, killAsteroid, null, this);
+    this.physics.add.overlap(
+      currentBullet,
+      asteroidsGroup,
+      killAsteroid,
+      null,
+      this
+    );
     lastShot = getCurrentTime();
 
     //TODO : Que les bullets se destroy à la sortie de l'écran (utiliser le config.width et height pour bricoler un truc)
@@ -199,6 +205,7 @@ function destroy(sprite) {
 
 function killAsteroid(projectile, asteroid) {
   projectile.destroy();
+  asteroid.destroy();
   score++;
   text.setText(`Score : ${score}`);
 }
