@@ -187,6 +187,22 @@ function generateAsteroid(physics) {
     currentAsteroid.angle = getRandomInt(360);
     let rad = Phaser.Math.DegToRad(currentAsteroid.angle);
     physics.velocityFromRotation(rad, 200, currentAsteroid.body.velocity);
+    currentAsteroid.setScale(1.5);
+  }
+}
+
+function generateAsteroid2(physics, asteroid, scale) {
+  for (let i = 0; i < 2; i++) {
+    var currentAsteroid2 = asteroidsGroup.create(
+      asteroid.x,
+      asteroid.y,
+      "asteroid"
+    );
+
+    currentAsteroid2.setScale(scale);
+    currentAsteroid2.angle = getRandomInt(360);
+    let rad = Phaser.Math.DegToRad(currentAsteroid2.angle);
+    physics.velocityFromRotation(rad, 200, currentAsteroid2.body.velocity);
   }
 }
 
@@ -201,6 +217,11 @@ function destroy(sprite) {
 }
 
 function killAsteroid(projectile, asteroid) {
+  if (asteroid.scale == 1.5) {
+    generateAsteroid2(this.physics, asteroid, 1);
+  } else if (asteroid.scale == 1) {
+    generateAsteroid2(this.physics, asteroid, 0.5);
+  }
   projectile.destroy();
   asteroid.destroy();
   score++;
