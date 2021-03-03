@@ -78,9 +78,9 @@ function create() {
   //Règle la méthode de décélération
   ship.setDamping(true);
   //Réglage de la vitesse de décélération
-  ship.setDrag(0.99);
+  ship.setDrag(0.5);
   //Règle la vitesse maximale de notre vaiseau
-  ship.setMaxVelocity(300);
+  ship.setMaxVelocity(400);
 
   cursors = this.input.keyboard.createCursorKeys();
   spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
@@ -103,7 +103,7 @@ function update() {
     }
     this.physics.velocityFromRotation(
       ship.rotation,
-      300,
+      1000,
       ship.body.acceleration
     );
   } else {
@@ -115,9 +115,9 @@ function update() {
   }
 
   if (cursors.left.isDown) {
-    ship.setAngularVelocity(-300);
+    ship.setAngularVelocity(-400);
   } else if (cursors.right.isDown) {
-    ship.setAngularVelocity(300);
+    ship.setAngularVelocity(400);
   } else {
     ship.setAngularVelocity(0);
   }
@@ -144,11 +144,6 @@ function update() {
     lastShot = getCurrentTime();
 
     //TODO : Que les bullets se destroy à la sortie de l'écran (utiliser le config.width et height pour bricoler un truc)
-  }
-
-  if (keyA.isDown && getCurrentTime() >= lastShot + cooldown) {
-    generateAsteroid(this.physics, numberOfAsteroids);
-    lastShot = getCurrentTime();
   }
 
   this.physics.world.wrap(ship, 25);
