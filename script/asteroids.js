@@ -90,10 +90,10 @@ function create() {
   asteroidsGroup = this.physics.add.group();
 
   this.physics.add.overlap(ship, asteroidsGroup, killPlayer, null, this);
+  generateAsteroid(this.physics);
 }
 function update() {
   // C'est la boucle principale du jeu
-
   if (cursors.up.isDown) {
     if (!activateAnim) {
       ship.play("ship_movement", true);
@@ -145,80 +145,17 @@ function update() {
   }
 
   if (keyA.isDown && getCurrentTime() >= lastShot + cooldown) {
-    // config.width = 1440
-    // config.height = 810
-    let posArray = [
-      {
-        x: 0 + getRandomInt(100),
-        y: 0 + getRandomInt(100),
-      },
-      {
-        x: config.width - getRandomInt(100),
-        y: 0 + getRandomInt(100),
-      },
-      {
-        x: config.width - getRandomInt(100),
-        y: config.height - getRandomInt(100),
-      },
-      {
-        x: 0 + getRandomInt(100),
-        y: config.height - getRandomInt(100),
-      },
-    ];
-
-    for (let i = 0; i < posArray.length; i++) {
-      var currentAsteroid = asteroidsGroup.create(
-        posArray[i].x,
-        posArray[i].y,
-        "asteroid"
-      );
-
-      currentAsteroid.angle = getRandomInt(360);
-      let rad = Phaser.Math.DegToRad(currentAsteroid.angle);
-      this.physics.velocityFromRotation(
-        rad,
-        200,
-        currentAsteroid.body.velocity
-      );
-
-      lastShot = getCurrentTime();
-    }
+    generateAsteroid(this.physics);
+    lastShot = getCurrentTime();
   }
 
   this.physics.world.wrap(ship, 25);
   this.physics.world.wrap(asteroidsGroup, 50);
-
-  // bullets.forEachExists(screenWrap, this);
 }
 
 getCurrentTime();
 
-function getCurrentTime() {
-  var time = Date.now();
-  return time;
-}
-
-function destroy(sprite) {
-  sprite.destroy();
-  console.log("Sprite détruit !");
-}
-
-function killAsteroid(projectile, asteroid) {
-  projectile.destroy();
-  asteroid.destroy();
-  score++;
-  text.setText(`Score : ${score}`);
-}
-
-function killPlayer(ship, asteroid) {
-  console.log("lol t mor");
-}
-
-function getRandomInt(max) {
-  return Math.floor(Math.random() * Math.floor(max));
-}
-
-function generateAsteroids() {
+function generateAsteroid(physics) {
   // config.width = 1440
   // config.height = 810
   let posArray = [
@@ -249,8 +186,31 @@ function generateAsteroids() {
 
     currentAsteroid.angle = getRandomInt(360);
     let rad = Phaser.Math.DegToRad(currentAsteroid.angle);
-    this.physics.velocityFromRotation(rad, 200, currentAsteroid.body.velocity);
-
-    lastShot = getCurrentTime();
+    physics.velocityFromRotation(rad, 200, currentAsteroid.body.velocity);
   }
+}
+
+function getCurrentTime() {
+  var time = Date.now();
+  return time;
+}
+
+function destroy(sprite) {
+  sprite.destroy();
+  console.log("Sprite détruit !");
+}
+
+function killAsteroid(projectile, asteroid) {
+  projectile.destroy();
+  asteroid.destroy();
+  score++;
+  text.setText(`Score : ${score}`);
+}
+
+function killPlayer(ship, asteroid) {
+  console.log("lol t mor");
+}
+
+function getRandomInt(max) {
+  return Math.floor(Math.random() * Math.floor(max));
 }
