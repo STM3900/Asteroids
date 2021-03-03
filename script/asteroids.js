@@ -20,6 +20,7 @@ var config = {
 var ship;
 var cursors;
 var asteroid;
+var numberOfAsteroids = 4;
 var text;
 var score = 0;
 var bullet;
@@ -90,7 +91,8 @@ function create() {
   asteroidsGroup = this.physics.add.group();
 
   this.physics.add.overlap(ship, asteroidsGroup, killPlayer, null, this);
-  generateAsteroid(this.physics);
+  generateAsteroid(this.physics, numberOfAsteroids);
+  console.log(asteroidsGroup.children.size);
 }
 function update() {
   // C'est la boucle principale du jeu
@@ -145,7 +147,7 @@ function update() {
   }
 
   if (keyA.isDown && getCurrentTime() >= lastShot + cooldown) {
-    generateAsteroid(this.physics);
+    generateAsteroid(this.physics, numberOfAsteroids);
     lastShot = getCurrentTime();
   }
 
@@ -155,9 +157,10 @@ function update() {
 
 getCurrentTime();
 
-function generateAsteroid(physics) {
+function generateAsteroid(physics, number) {
   // config.width = 1440
   // config.height = 810
+  let iterator = 0;
   let posArray = [
     {
       x: 0 + getRandomInt(100),
@@ -177,10 +180,14 @@ function generateAsteroid(physics) {
     },
   ];
 
-  for (let i = 0; i < posArray.length; i++) {
+  for (let i = 0; i < number; i++) {
+    if (iterator > 3) {
+      iterator = 0;
+    }
+
     var currentAsteroid = asteroidsGroup.create(
-      posArray[i].x,
-      posArray[i].y,
+      posArray[iterator].x,
+      posArray[iterator].y,
       "asteroid"
     );
 
@@ -188,6 +195,8 @@ function generateAsteroid(physics) {
     let rad = Phaser.Math.DegToRad(currentAsteroid.angle);
     physics.velocityFromRotation(rad, 200, currentAsteroid.body.velocity);
     currentAsteroid.setScale(1.5);
+
+    iterator++;
   }
 }
 
@@ -226,6 +235,13 @@ function killAsteroid(projectile, asteroid) {
   asteroid.destroy();
   score++;
   text.setText(`Score : ${score}`);
+
+  if (asteroidsGroup.children.size == 0) {
+    numberOfAsteroids++;
+    setTimeout(() => {
+      generateAsteroid(this.physics, numberOfAsteroids);
+    }, 1000);
+  }
 }
 
 function killPlayer(ship, asteroid) {
