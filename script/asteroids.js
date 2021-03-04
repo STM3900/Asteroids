@@ -23,6 +23,7 @@ var asteroid;
 var numberOfAsteroids = 4;
 var text;
 var score = 0;
+var comboMultiplier = 1;
 var bullet;
 var bulletGroup;
 var lastShot = 0;
@@ -41,7 +42,7 @@ function preload() {
     frameHeight: 90,
   });
   this.load.image("asteroid", "img/sprite/asteroid.png");
-  // this.load.image("ship", "img/ship.png");
+  this.load.bitmapFont("pixelFont", "img/font/font.png", "img/font/font.xml");
 }
 function create() {
   // Ici on vas initialiser les variables, l'affichage ...
@@ -85,8 +86,7 @@ function create() {
 
   cursors = this.input.keyboard.createCursorKeys();
   spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-  text = this.add.text(10, 10, "", { font: "16px Courier", fill: "#ffffff" });
-  text.setText(`Score : ${score}`);
+  text = this.add.bitmapText(10, 10, "pixelFont", "SCORE : 000000", 32);
 
   keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
   asteroidsGroup = this.physics.add.group();
@@ -239,8 +239,9 @@ function killAsteroid(projectile, asteroid) {
   }
   projectile.destroy();
   asteroid.destroy();
-  score++;
-  text.setText(`Score : ${score}`);
+  score += 15 * comboMultiplier; // Le multiplicateur de combo servira plus tard hihi
+  let scoreFormated = zeroPad(score, 6);
+  text.setText(`SCORE : ${scoreFormated}`);
 
   if (asteroidsGroup.children.size == 0) {
     numberOfAsteroids++;
@@ -256,4 +257,12 @@ function killPlayer(ship, asteroid) {
 
 function getRandomInt(max) {
   return Math.floor(Math.random() * Math.floor(max));
+}
+
+function zeroPad(number, size) {
+  let stringNumber = String(number);
+  while (stringNumber.length < (size || 2)) {
+    stringNumber = "0" + stringNumber;
+  }
+  return stringNumber;
 }
