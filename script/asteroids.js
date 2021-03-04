@@ -33,6 +33,9 @@ var activateAnim = false;
 
 let keyA;
 
+var tempX;
+var tempY;
+
 var game = new Phaser.Game(config);
 function preload() {
   // C'est là qu'on vas charger les images et les sons 100 90
@@ -99,15 +102,17 @@ function create() {
 function update() {
   // C'est la boucle principale du jeu
   if (cursors.up.isDown) {
-    if (!activateAnim) {
-      ship.play("ship_movement", true);
-      activateAnim = true;
+    if (true) {
+      if (!activateAnim) {
+        ship.play("ship_movement", true);
+        activateAnim = true;
+      }
+      this.physics.velocityFromRotation(
+        ship.rotation,
+        1000,
+        ship.body.acceleration
+      );
     }
-    this.physics.velocityFromRotation(
-      ship.rotation,
-      1000,
-      ship.body.acceleration
-    );
   } else {
     ship.setAcceleration(0);
     if (activateAnim) {
@@ -125,27 +130,29 @@ function update() {
   }
 
   if (spaceBar.isDown && getCurrentTime() >= lastShot + cooldown) {
-    var currentBullet = bulletGroup.create(ship.x, ship.y, "bullet");
+    if (ship.active) {
+      var currentBullet = bulletGroup.create(ship.x, ship.y, "bullet");
 
-    currentBullet.angle = ship.angle + 90;
-    let rad = Phaser.Math.DegToRad(ship.angle);
-    this.physics.velocityFromRotation(
-      rad,
-      bulletSpeed,
-      currentBullet.body.velocity
-    );
+      currentBullet.angle = ship.angle + 90;
+      let rad = Phaser.Math.DegToRad(ship.angle);
+      this.physics.velocityFromRotation(
+        rad,
+        bulletSpeed,
+        currentBullet.body.velocity
+      );
 
-    this.physics.add.overlap(
-      currentBullet,
-      asteroidsGroup,
-      killAsteroid,
-      null,
-      this
-    );
-    lastShot = getCurrentTime();
-    setTimeout(() => {
-      currentBullet.destroy();
-    }, 500);
+      this.physics.add.overlap(
+        currentBullet,
+        asteroidsGroup,
+        killAsteroid,
+        null,
+        this
+      );
+      lastShot = getCurrentTime();
+      setTimeout(() => {
+        currentBullet.destroy();
+      }, 500);
+    }
   }
 
   this.physics.world.wrap(ship, 25);
@@ -226,11 +233,6 @@ function getCurrentTime() {
   return time;
 }
 
-function destroy(sprite) {
-  sprite.destroy();
-  console.log("Sprite détruit !");
-}
-
 function killAsteroid(projectile, asteroid) {
   if (asteroid.scale == 1.5) {
     generateAsteroid2(this.physics, asteroid, 1);
@@ -252,7 +254,31 @@ function killAsteroid(projectile, asteroid) {
 }
 
 function killPlayer(ship, asteroid) {
-  console.log("lol t mor");
+  if (ship.alpha == 1) {
+    ship.angle = -90;
+    ship.disableBody(true, true);
+
+    setTimeout(() => {
+      let x = config.width / 2;
+      let y = config.height;
+      ship.enableBody(true, x, y, true, true);
+
+      ship.alpha = 0.5;
+
+      var tween = this.tweens.add({
+        targets: ship,
+        y: config.height / 2,
+        ease: "Power1",
+        duration: 1500,
+        repeat: 0,
+        onComplete: function () {
+          ship.body.velocity.y = 0;
+          ship.alpha = 1;
+        },
+        callbackScope: this,
+      });
+    }, 500);
+  }
 }
 
 function getRandomInt(max) {
