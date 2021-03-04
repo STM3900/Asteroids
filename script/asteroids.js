@@ -24,6 +24,7 @@ var numberOfAsteroids = 4;
 var text;
 var score = 0;
 var bullet;
+var bulletGroup;
 var lastShot = 0;
 var cooldown = 300;
 var bulletSpeed = 1500;
@@ -89,6 +90,7 @@ function create() {
 
   keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
   asteroidsGroup = this.physics.add.group();
+  bulletGroup = this.physics.add.group();
 
   this.physics.add.overlap(ship, asteroidsGroup, killPlayer, null, this);
   generateAsteroid(this.physics, numberOfAsteroids);
@@ -123,8 +125,7 @@ function update() {
   }
 
   if (spaceBar.isDown && getCurrentTime() >= lastShot + cooldown) {
-    bullets = this.physics.add.group();
-    var currentBullet = bullets.create(ship.x, ship.y, "bullet");
+    var currentBullet = bulletGroup.create(ship.x, ship.y, "bullet");
 
     currentBullet.angle = ship.angle + 90;
     let rad = Phaser.Math.DegToRad(ship.angle);
@@ -142,12 +143,14 @@ function update() {
       this
     );
     lastShot = getCurrentTime();
-
-    //TODO : Que les bullets se destroy à la sortie de l'écran (utiliser le config.width et height pour bricoler un truc)
+    setTimeout(() => {
+      currentBullet.destroy();
+    }, 500);
   }
 
   this.physics.world.wrap(ship, 25);
   this.physics.world.wrap(asteroidsGroup, 50);
+  this.physics.world.wrap(bulletGroup, 25);
 }
 
 getCurrentTime();
