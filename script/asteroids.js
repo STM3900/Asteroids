@@ -188,7 +188,11 @@ function generateAsteroid(physics, number) {
 
     currentAsteroid.angle = getRandomInt(360);
     let rad = Phaser.Math.DegToRad(currentAsteroid.angle);
-    physics.velocityFromRotation(rad, 200, currentAsteroid.body.velocity);
+    physics.velocityFromRotation(
+      rad,
+      100 + getRandomInt(100),
+      currentAsteroid.body.velocity
+    );
     currentAsteroid.setScale(1.5);
 
     iterator++;
@@ -206,7 +210,11 @@ function generateAsteroid2(physics, asteroid, scale) {
     currentAsteroid2.setScale(scale);
     currentAsteroid2.angle = getRandomInt(360);
     let rad = Phaser.Math.DegToRad(currentAsteroid2.angle);
-    physics.velocityFromRotation(rad, 200, currentAsteroid2.body.velocity);
+    physics.velocityFromRotation(
+      rad,
+      200 + getRandomInt(50) + (scale == 0.5 ? getRandomInt(100) : 0),
+      currentAsteroid2.body.velocity
+    );
   }
 }
 
