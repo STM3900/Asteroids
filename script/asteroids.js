@@ -31,7 +31,9 @@ var cooldown = 300;
 var bulletSpeed = 1500;
 var activateAnim = false;
 
-let keyA;
+var hp = 3;
+var shipHp;
+var shipHpGroup;
 
 var tempX;
 var tempY;
@@ -41,6 +43,10 @@ function preload() {
   // C'est là qu'on vas charger les images et les sons 100 90
   this.load.image("bullet", "img/sprite/bullet.png");
   this.load.spritesheet("ship", "img/sprite/ship_animation.png", {
+    frameWidth: 100,
+    frameHeight: 90,
+  });
+  this.load.spritesheet("shipHp", "img/sprite/ship_animation.png", {
     frameWidth: 100,
     frameHeight: 90,
   });
@@ -56,6 +62,9 @@ function create() {
   ship = this.physics.add.sprite(400, 300, "ship");
   asteroid = this.physics.add.sprite(600, 600, "asteroid");
   asteroid.destroy();
+
+  shipHp = this.physics.add.sprite(400, 300, "ship");
+  shipHp.destroy();
 
   this.anims.create({
     key: "ship_movement",
@@ -89,15 +98,18 @@ function create() {
 
   cursors = this.input.keyboard.createCursorKeys();
   spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-  text = this.add.bitmapText(10, 10, "pixelFont", "SCORE : 000000", 32);
+  text = this.add.bitmapText(10, 15, "pixelFont", "SCORE : 000000", 32);
 
   keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
   asteroidsGroup = this.physics.add.group();
   bulletGroup = this.physics.add.group();
+  shipHpGroup = this.physics.add.group();
 
   this.physics.add.overlap(ship, asteroidsGroup, killPlayer, null, this);
   generateAsteroid(this.physics, numberOfAsteroids);
-  console.log(asteroidsGroup.children.size);
+
+  console.log(hp);
+  createDisplayLife();
 }
 function update() {
   // C'est la boucle principale du jeu
@@ -255,29 +267,37 @@ function killAsteroid(projectile, asteroid) {
 
 function killPlayer(ship, asteroid) {
   if (ship.alpha == 1) {
-    ship.angle = -90;
-    ship.disableBody(true, true);
+    hp--;
+    destroyLife();
+    console.log(hp);
+    if (hp > 0) {
+      ship.angle = -90;
+      ship.disableBody(true, true);
 
-    setTimeout(() => {
-      let x = config.width / 2;
-      let y = config.height;
-      ship.enableBody(true, x, y, true, true);
+      setTimeout(() => {
+        let x = config.width / 2;
+        let y = config.height;
+        ship.enableBody(true, x, y, true, true);
 
-      ship.alpha = 0.5;
+        ship.alpha = 0.5;
 
-      var tween = this.tweens.add({
-        targets: ship,
-        y: config.height / 2,
-        ease: "Power1",
-        duration: 1500,
-        repeat: 0,
-        onComplete: function () {
-          ship.body.velocity.y = 0;
-          ship.alpha = 1;
-        },
-        callbackScope: this,
-      });
-    }, 500);
+        var tween = this.tweens.add({
+          targets: ship,
+          y: config.height / 2,
+          ease: "Power1",
+          duration: 1500,
+          repeat: 0,
+          onComplete: function () {
+            ship.body.velocity.y = 0;
+            ship.alpha = 1;
+          },
+          callbackScope: this,
+        });
+      }, 500);
+    } else {
+      console.log("T'as perdu mdr");
+      ship.disableBody(true, true);
+    }
   }
 }
 
@@ -291,4 +311,26 @@ function zeroPad(number, size) {
     stringNumber = "0" + stringNumber;
   }
   return stringNumber;
+}
+
+function createDisplayLife() {
+  for (let i = 0; i < hp; i++) {
+    shipHp = shipHpGroup.create(config.width - 30 - i * 45, 25, "shipHp");
+    shipHp.setScale(0.4);
+  }
+}
+
+function destroyLife() {
+  shipHpGroup.getChildren()[shipHpGroup.getChildren().length - 1].destroy();
+}
+
+// Servira plus tard, pour les powerup
+function addLife() {
+  hp++;
+  shipHp = shipHpGroup.create(
+    config.width - 30 - shipHpGroup.getChildren().length * 45,
+    25,
+    "shipHp"
+  );
+  shipHp.setScale(0.4);
 }
