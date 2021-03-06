@@ -31,7 +31,7 @@ var cooldown = 300;
 var bulletSpeed = 1500;
 var activateAnim = false;
 
-var hp = 3;
+var hp = 0;
 var shipHp;
 var shipHpGroup;
 
@@ -108,8 +108,8 @@ function create() {
   this.physics.add.overlap(ship, asteroidsGroup, killPlayer, null, this);
   generateAsteroid(this.physics, numberOfAsteroids);
 
+  addLife(3);
   console.log(hp);
-  createDisplayLife();
 }
 function update() {
   // C'est la boucle principale du jeu
@@ -313,24 +313,25 @@ function zeroPad(number, size) {
   return stringNumber;
 }
 
-function createDisplayLife() {
-  for (let i = 0; i < hp; i++) {
-    shipHp = shipHpGroup.create(config.width - 30 - i * 45, 25, "shipHp");
-    shipHp.setScale(0.4);
-  }
-}
-
 function destroyLife() {
   shipHpGroup.getChildren()[shipHpGroup.getChildren().length - 1].destroy();
 }
 
-// Servira plus tard, pour les powerup
-function addLife() {
-  hp++;
-  shipHp = shipHpGroup.create(
-    config.width - 30 - shipHpGroup.getChildren().length * 45,
-    25,
-    "shipHp"
-  );
-  shipHp.setScale(0.4);
+// Fonctionne aussi bien pour l'initialisation de vie qu'à un ajout via powerup
+function addLife(numberOfLife) {
+  if ((shipHpGroup.getChildren().length = 0)) {
+    shipHp = shipHpGroup.create(config.width - 30, 25, "shipHp");
+    shipHp.setScale(0.4);
+    hp++;
+  } else {
+    for (let i = 0; i < numberOfLife; i++) {
+      hp++;
+      shipHp = shipHpGroup.create(
+        config.width - 30 - shipHpGroup.getChildren().length * 45,
+        25,
+        "shipHp"
+      );
+      shipHp.setScale(0.4);
+    }
+  }
 }
