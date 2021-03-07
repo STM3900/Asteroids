@@ -61,6 +61,9 @@ var shotSound3;
 explosionTab = [];
 shotTab = [];
 
+var readyToReset = false;
+let keyA;
+
 var game = new Phaser.Game(config);
 function preload() {
   // C'est là qu'on vas charger les images et les sons 100 90
@@ -99,6 +102,7 @@ function preload() {
   this.load.image("explodot", "img/sprite/dot_explosion.png");
 }
 function create() {
+  keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
   // Ici on vas initialiser les variables, l'affichage ...
   // le son ouais
   beat1 = this.sound.add("beat1", { volume: 0.5 });
@@ -183,6 +187,8 @@ function create() {
   console.log(hp);
 
   playMusic();
+  GLOBAL_Physics = this.physics;
+  GLOBAL_Tween = this.tweens;
 }
 function update() {
   // C'est la boucle principale du jeu
@@ -246,6 +252,11 @@ function update() {
   this.physics.world.wrap(ship, 25);
   this.physics.world.wrap(asteroidsGroup, 50);
   this.physics.world.wrap(bulletGroup, 25);
+
+  if (keyA.isDown && readyToReset) {
+    console.log("Reset !");
+    resetGameBegin();
+  }
 }
 
 getCurrentTime();
@@ -347,6 +358,7 @@ function killAsteroid(projectile, asteroid) {
 
 function killPlayer(ship, asteroid) {
   if (ship.alpha == 1) {
+    console.log("ship down");
     dieSound.play();
     hp--;
     destroyLife();
@@ -431,7 +443,50 @@ function playMusic() {
 }
 
 function endGame() {
-  endText.setText(`T'as perdu mdr t nul`);
+  readyToReset = true;
+  endText.setText("T'as perdu mdr t nul");
 }
 
-function resetGame() {}
+function resetGameBegin() {
+  readyToReset = false;
+  endText.setText("");
+  let size = asteroidsGroup.children.size;
+  let i = 0;
+  cleanAsteroids(i, size, 100);
+}
+
+function cleanAsteroids(i, size, delay) {
+  setTimeout(() => {
+    asteroidsGroup.getChildren()[0].destroy();
+    i++;
+    i == size ? resetGameEnd() : cleanAsteroids(i, size, delay);
+  }, delay);
+}
+
+function resetGameEnd() {
+  score = 0;
+  text.setText("SCORE : 000000");
+  addLife(3);
+
+  ship.angle = -90;
+
+  let x = config.width / 2;
+  let y = config.height;
+  ship.enableBody(true, x, y, true, true);
+
+  ship.alpha = 0.5;
+
+  var tween = this.GLOBAL_Tween.add({
+    targets: ship,
+    y: config.height / 2,
+    ease: "Power1",
+    duration: 1500,
+    repeat: 0,
+    onComplete: function () {
+      ship.body.velocity.y = 0;
+      ship.alpha = 1;
+      generateAsteroid(GLOBAL_Physics, numberOfAsteroids);
+    },
+    callbackScope: this,
+  });
+}
