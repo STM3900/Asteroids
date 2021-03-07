@@ -21,7 +21,10 @@ var ship;
 var cursors;
 var asteroid;
 var numberOfAsteroids = 4;
+
 var text;
+var endText;
+
 var score = 0;
 var comboMultiplier = 1;
 var bullet;
@@ -38,6 +41,26 @@ var shipHpGroup;
 var tempX;
 var tempY;
 
+// POUR LA MUSIQUE
+var beat1;
+var beat2;
+var speedRate = 1100;
+var ifActive = true;
+
+var thrustSound;
+var dieSound;
+
+var explosionSound1;
+var explosionSound2;
+var explosionSound3;
+
+var shotSound1;
+var shotSound2;
+var shotSound3;
+
+explosionTab = [];
+shotTab = [];
+
 var game = new Phaser.Game(config);
 function preload() {
   // C'est là qu'on vas charger les images et les sons 100 90
@@ -52,9 +75,48 @@ function preload() {
   });
   this.load.image("asteroid", "img/sprite/asteroid.png");
   this.load.bitmapFont("pixelFont", "img/font/font.png", "img/font/font.xml");
+
+  // Chargement de l'audio
+  // musique
+  this.load.audio("beat1", "sound/music/beat1.wav");
+  this.load.audio("beat2", "sound/music/beat2.wav");
+
+  // vaiseau
+  this.load.audio("thrust", "sound/ship/thrust.wav");
+  this.load.audio("die", "sound/ship/die.wav");
+
+  // explosions des asteroids
+  this.load.audio("explosion1", "sound/explosion/explosion1.wav");
+  this.load.audio("explosion2", "sound/explosion/explosion2.wav");
+  this.load.audio("explosion3", "sound/explosion/explosion3.wav");
+
+  // tirs
+  this.load.audio("shot1", "sound/shot/shot1.wav");
+  this.load.audio("shot2", "sound/shot/shot2.wav");
+  this.load.audio("shot3", "sound/shot/shot3.wav");
+
+  // particule
+  this.load.image("explodot", "img/sprite/dot_explosion.png");
 }
 function create() {
   // Ici on vas initialiser les variables, l'affichage ...
+  // le son ouais
+  beat1 = this.sound.add("beat1", { volume: 0.5 });
+  beat2 = this.sound.add("beat2", { volume: 0.5 });
+
+  thrustSound = this.sound.add("thrust", { volume: 0.3 });
+  dieSound = this.sound.add("die", { volume: 0.3 });
+
+  explosionSound1 = this.sound.add("explosion1", { volume: 0.1 });
+  explosionSound2 = this.sound.add("explosion2", { volume: 0.1 });
+  explosionSound3 = this.sound.add("explosion3", { volume: 0.1 });
+
+  shotSound1 = this.sound.add("shot1", { volume: 0.3 });
+  shotSound2 = this.sound.add("shot2", { volume: 0.3 });
+  shotSound3 = this.sound.add("shot3", { volume: 0.3 });
+
+  explosionTab.push(explosionSound1, explosionSound2, explosionSound3);
+  shotTab.push(shotSound1, shotSound2, shotSound3);
 
   //Sprite de notre vaisseau
   bullet = this.physics.add.sprite(13, 37, "bullet");
@@ -99,6 +161,15 @@ function create() {
   cursors = this.input.keyboard.createCursorKeys();
   spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
   text = this.add.bitmapText(10, 15, "pixelFont", "SCORE : 000000", 32);
+  endText = this.add
+    .bitmapText(
+      this.cameras.main.worldView.x + this.cameras.main.width / 2,
+      this.cameras.main.worldView.y + this.cameras.main.height / 2,
+      "pixelFont",
+      "",
+      32
+    )
+    .setOrigin(0.5);
 
   keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
   asteroidsGroup = this.physics.add.group();
@@ -110,12 +181,15 @@ function create() {
 
   addLife(3);
   console.log(hp);
+
+  playMusic();
 }
 function update() {
   // C'est la boucle principale du jeu
   if (cursors.up.isDown) {
     if (true) {
       if (!activateAnim) {
+        thrustSound.play({ loop: true });
         ship.play("ship_movement", true);
         activateAnim = true;
       }
@@ -129,6 +203,7 @@ function update() {
     ship.setAcceleration(0);
     if (activateAnim) {
       ship.play("ship_stop", true);
+      thrustSound.stop();
       activateAnim = false;
     }
   }
@@ -143,6 +218,7 @@ function update() {
 
   if (spaceBar.isDown && getCurrentTime() >= lastShot + cooldown) {
     if (ship.active) {
+      shotTab[getRandomInt(3)].play();
       var currentBullet = bulletGroup.create(ship.x, ship.y, "bullet");
 
       currentBullet.angle = ship.angle + 90;
@@ -177,6 +253,9 @@ getCurrentTime();
 function generateAsteroid(physics, number) {
   // config.width = 1440
   // config.height = 810
+  if (speedRate > 200) {
+    speedRate -= 100;
+  }
   let iterator = 0;
   let posArray = [
     {
@@ -246,6 +325,7 @@ function getCurrentTime() {
 }
 
 function killAsteroid(projectile, asteroid) {
+  explosionTab[getRandomInt(3)].play();
   if (asteroid.scale == 1.5) {
     generateAsteroid2(this.physics, asteroid, 1);
   } else if (asteroid.scale == 1) {
@@ -267,6 +347,7 @@ function killAsteroid(projectile, asteroid) {
 
 function killPlayer(ship, asteroid) {
   if (ship.alpha == 1) {
+    dieSound.play();
     hp--;
     destroyLife();
     console.log(hp);
@@ -297,6 +378,7 @@ function killPlayer(ship, asteroid) {
     } else {
       console.log("T'as perdu mdr");
       ship.disableBody(true, true);
+      endGame();
     }
   }
 }
@@ -335,3 +417,21 @@ function addLife(numberOfLife) {
     }
   }
 }
+
+function playMusic() {
+  beat1.play();
+  setTimeout(() => {
+    beat2.play();
+    setTimeout(() => {
+      if (ifActive) {
+        playMusic();
+      }
+    }, speedRate);
+  }, speedRate);
+}
+
+function endGame() {
+  endText.setText(`T'as perdu mdr t nul`);
+}
+
+function resetGame() {}
