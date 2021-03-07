@@ -24,6 +24,8 @@ var numberOfAsteroids = 4;
 
 var text;
 var endText;
+var endTextScore;
+var endTextReturn;
 
 var score = 0;
 var comboMultiplier = 1;
@@ -49,6 +51,7 @@ var ifActive = true;
 
 var thrustSound;
 var dieSound;
+var shipIsDead = false;
 
 var explosionSound1;
 var explosionSound2;
@@ -62,7 +65,7 @@ explosionTab = [];
 shotTab = [];
 
 var readyToReset = false;
-let keyA;
+let keyR;
 
 var game = new Phaser.Game(config);
 function preload() {
@@ -102,7 +105,7 @@ function preload() {
   this.load.image("explodot", "img/sprite/dot_explosion.png");
 }
 function create() {
-  keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+  keyR = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
   // Ici on vas initialiser les variables, l'affichage ...
   // le son ouais
   beat1 = this.sound.add("beat1", { volume: 0.5 });
@@ -164,18 +167,35 @@ function create() {
 
   cursors = this.input.keyboard.createCursorKeys();
   spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-  text = this.add.bitmapText(10, 15, "pixelFont", "SCORE : 000000", 32);
+  text = this.add.bitmapText(10, 15, "pixelFont", "SCORE:000000", 20);
   endText = this.add
     .bitmapText(
       this.cameras.main.worldView.x + this.cameras.main.width / 2,
-      this.cameras.main.worldView.y + this.cameras.main.height / 2,
+      this.cameras.main.worldView.y + this.cameras.main.height / 2 - 20,
       "pixelFont",
       "",
       32
     )
     .setOrigin(0.5);
+  endTextScore = this.add
+    .bitmapText(
+      this.cameras.main.worldView.x + this.cameras.main.width / 2,
+      this.cameras.main.worldView.y + this.cameras.main.height / 2 + 30,
+      "pixelFont",
+      "",
+      32
+    )
+    .setOrigin(0.5);
+  endTextReturn = this.add
+    .bitmapText(
+      this.cameras.main.worldView.x + this.cameras.main.width / 2,
+      this.cameras.main.worldView.y + this.cameras.main.height / 2 + 70,
+      "pixelFont",
+      "",
+      10
+    )
+    .setOrigin(0.5);
 
-  keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
   asteroidsGroup = this.physics.add.group();
   bulletGroup = this.physics.add.group();
   shipHpGroup = this.physics.add.group();
@@ -253,7 +273,7 @@ function update() {
   this.physics.world.wrap(asteroidsGroup, 50);
   this.physics.world.wrap(bulletGroup, 25);
 
-  if (keyA.isDown && readyToReset) {
+  if (keyR.isDown && readyToReset) {
     console.log("Reset !");
     resetGameBegin();
   }
@@ -346,7 +366,7 @@ function killAsteroid(projectile, asteroid) {
   asteroid.destroy();
   score += 15 * comboMultiplier; // Le multiplicateur de combo servira plus tard hihi
   let scoreFormated = zeroPad(score, 6);
-  text.setText(`SCORE : ${scoreFormated}`);
+  text.setText(`SCORE:${scoreFormated}`);
 
   if (asteroidsGroup.children.size == 0) {
     numberOfAsteroids++;
@@ -357,7 +377,8 @@ function killAsteroid(projectile, asteroid) {
 }
 
 function killPlayer(ship, asteroid) {
-  if (ship.alpha == 1) {
+  if (ship.alpha == 1 && !shipIsDead) {
+    shipIsDead = true;
     console.log("ship down");
     dieSound.play();
     hp--;
@@ -383,6 +404,7 @@ function killPlayer(ship, asteroid) {
           onComplete: function () {
             ship.body.velocity.y = 0;
             ship.alpha = 1;
+            shipIsDead = false;
           },
           callbackScope: this,
         });
@@ -444,12 +466,18 @@ function playMusic() {
 
 function endGame() {
   readyToReset = true;
-  endText.setText("T'as perdu mdr t nul");
+  let scoreFormated = zeroPad(score, 6);
+  endText.setText("GAME OVER");
+  endTextScore.setText(`SCORE:${scoreFormated}`);
+  endTextReturn.setText("PRESS R TO RESTART");
+  blinkTextFunction(endTextReturn, 600);
 }
 
 function resetGameBegin() {
   readyToReset = false;
   endText.setText("");
+  endTextScore.setText("");
+  endTextReturn.setText("");
   let size = asteroidsGroup.children.size;
   let i = 0;
   cleanAsteroids(i, size, 100);
@@ -465,7 +493,7 @@ function cleanAsteroids(i, size, delay) {
 
 function resetGameEnd() {
   score = 0;
-  text.setText("SCORE : 000000");
+  text.setText("SCORE:000000");
   addLife(3);
 
   ship.angle = -90;
@@ -489,4 +517,14 @@ function resetGameEnd() {
     },
     callbackScope: this,
   });
+}
+
+function blinkTextFunction(blinkText, delay, blinker = false) {
+  metronom = blinker;
+  if (blinkText != "") {
+    setTimeout(() => {
+      blinkText.setVisible(metronom);
+      blinkTextFunction(blinkText, delay, !metronom);
+    }, delay);
+  }
 }
