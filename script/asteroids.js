@@ -591,8 +591,31 @@ function resetGameEnd(isInitiate = false) {
   score = 0;
 
   if (isInitiate) {
-    titleText.setText("");
-    startText.setText("");
+    var tween = this.GLOBAL_Tween.add({
+      targets: titleText,
+      y: 1000 + titleText.y,
+      ease: "Quad.easeIn",
+      duration: 1500,
+      repeat: 0,
+      onComplete: function () {
+        titleText.setText("");
+        startText.setText("");
+      },
+      callbackScope: this,
+    });
+
+    var tween = this.GLOBAL_Tween.add({
+      targets: startText,
+      y: 1000 + startText.y,
+      ease: "Quad.easeIn",
+      duration: 1500,
+      repeat: 0,
+      onComplete: function () {
+        titleText.setText("");
+        startText.setText("");
+      },
+      callbackScope: this,
+    });
   } else {
     text.setText("SCORE:000000");
     addLife(3);
@@ -601,7 +624,7 @@ function resetGameEnd(isInitiate = false) {
   ship.angle = -90;
 
   let x = config.width / 2;
-  let y = config.height;
+  let y = config.height + 20;
   ship.enableBody(true, x, y, true, true);
 
   ship.alpha = 0.5;
@@ -609,7 +632,7 @@ function resetGameEnd(isInitiate = false) {
   var tween = this.GLOBAL_Tween.add({
     targets: ship,
     y: config.height / 2,
-    ease: "Power1",
+    ease: isInitiate ? "Quad.easeInOut" : "Power1",
     duration: 1500,
     repeat: 0,
     onComplete: function () {
