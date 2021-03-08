@@ -27,10 +27,15 @@ var endText;
 var endTextScore;
 var endTextReturn;
 
+var titleText;
+var startText;
+var initiateGame = false;
+
 var score = 0;
 var comboMultiplier = 1;
 var bullet;
 var bulletGroup;
+var tempNot = false;
 var lastShot = 0;
 var cooldown = 300;
 var bulletSpeed = 1500;
@@ -167,7 +172,7 @@ function create() {
 
   cursors = this.input.keyboard.createCursorKeys();
   spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-  text = this.add.bitmapText(10, 15, "pixelFont", "SCORE:000000", 20);
+  text = this.add.bitmapText(10, 15, "pixelFont", "", 20);
   endText = this.add
     .bitmapText(
       this.cameras.main.worldView.x + this.cameras.main.width / 2,
@@ -195,20 +200,39 @@ function create() {
       10
     )
     .setOrigin(0.5);
+  titleText = this.add
+    .bitmapText(
+      this.cameras.main.worldView.x + this.cameras.main.width / 2,
+      this.cameras.main.worldView.y + this.cameras.main.height / 2 - 20,
+      "pixelFont",
+      "ASTEROIDS",
+      48
+    )
+    .setOrigin(0.5);
+  startText = this.add
+    .bitmapText(
+      this.cameras.main.worldView.x + this.cameras.main.width / 2,
+      this.cameras.main.worldView.y + this.cameras.main.height / 2 + 30,
+      "pixelFont",
+      "PRESS SPACE TO START",
+      16
+    )
+    .setOrigin(0.5);
 
   asteroidsGroup = this.physics.add.group();
   bulletGroup = this.physics.add.group();
   shipHpGroup = this.physics.add.group();
 
   this.physics.add.overlap(ship, asteroidsGroup, killPlayer, null, this);
-  generateAsteroid(this.physics, numberOfAsteroids);
-
-  addLife(3);
-  console.log(hp);
+  // generateAsteroid(this.physics, numberOfAsteroids);
 
   playMusic();
   GLOBAL_Physics = this.physics;
   GLOBAL_Tween = this.tweens;
+
+  ship.disableBody(true, true);
+
+  blinkTextFunction(startText, 600);
 }
 function update() {
   // C'est la boucle principale du jeu
@@ -243,7 +267,7 @@ function update() {
   }
 
   if (spaceBar.isDown && getCurrentTime() >= lastShot + cooldown) {
-    if (ship.active) {
+    if (ship.active && tempNot) {
       shotTab[getRandomInt(3)].play();
       var currentBullet = bulletGroup.create(ship.x, ship.y, "bullet");
 
@@ -266,7 +290,17 @@ function update() {
       setTimeout(() => {
         currentBullet.destroy();
       }, 500);
+    } else if (!initiateGame) {
+      initiateGame = true;
+      resetGameEnd(true);
+
+      setTimeout(() => {
+        tempNot = true;
+      }, 300);
     }
+  }
+
+  if (spaceBar.JustDown && !initiateGame) {
   }
 
   this.physics.world.wrap(ship, 25);
@@ -376,7 +410,7 @@ function killAsteroid(projectile, asteroid) {
   }
 }
 
-function killPlayer(ship, asteroid) {
+function killPlayer(ship) {
   if (ship.alpha == 1 && !shipIsDead) {
     shipIsDead = true;
     console.log("ship down");
@@ -475,6 +509,7 @@ function endGame() {
 
 function resetGameBegin() {
   readyToReset = false;
+  shipIsDead = false;
   endText.setText("");
   endTextScore.setText("");
   endTextReturn.setText("");
@@ -491,10 +526,16 @@ function cleanAsteroids(i, size, delay) {
   }, delay);
 }
 
-function resetGameEnd() {
+function resetGameEnd(isInitiate = false) {
   score = 0;
-  text.setText("SCORE:000000");
-  addLife(3);
+
+  if (isInitiate) {
+    titleText.setText("");
+    startText.setText("");
+  } else {
+    text.setText("SCORE:000000");
+    addLife(3);
+  }
 
   ship.angle = -90;
 
@@ -514,6 +555,10 @@ function resetGameEnd() {
       ship.body.velocity.y = 0;
       ship.alpha = 1;
       generateAsteroid(GLOBAL_Physics, numberOfAsteroids);
+      if (isInitiate) {
+        text.setText("SCORE:000000");
+        addLife(3);
+      }
     },
     callbackScope: this,
   });
