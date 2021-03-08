@@ -17,11 +17,8 @@ var config = {
   },
 };
 // Variables globales
-var ship;
-var cursors;
-var asteroid;
-var numberOfAsteroids = 4;
 
+// Pour le texte
 var text;
 var endText;
 var endTextScore;
@@ -31,8 +28,11 @@ var titleText;
 var startText;
 var initiateGame = false;
 
+// Score
 var score = 0;
 var comboMultiplier = 1;
+
+// Pour les tirs
 var bullet;
 var bulletGroup;
 var tempNot = false;
@@ -41,6 +41,12 @@ var cooldown = 300;
 var bulletSpeed = 1500;
 var activateAnim = false;
 
+// Pour les asteroids
+var asteroid;
+var numberOfAsteroids = 4;
+
+// Pour le vaisseau
+var ship;
 var hp = 0;
 var shipHp;
 var shipHpGroup;
@@ -66,26 +72,32 @@ var shotSound1;
 var shotSound2;
 var shotSound3;
 
+// Tableau de musique (pour appeler des sons différents aléatoirement)
 explosionTab = [];
 shotTab = [];
 
+// Autre
 var readyToReset = false;
+var cursors;
 let keyR;
 
+// Initialisation de phaser
 var game = new Phaser.Game(config);
 function preload() {
-  // C'est là qu'on vas charger les images et les sons 100 90
-  this.load.image("bullet", "img/sprite/bullet.png");
+  // C'est là qu'on vas charger les images et les sons
+  this.load.image("bullet", "img/sprite/bullet.png"); // Tir
   this.load.spritesheet("ship", "img/sprite/ship_animation.png", {
+    // Vaisseau
     frameWidth: 100,
     frameHeight: 90,
   });
   this.load.spritesheet("shipHp", "img/sprite/ship_animation.png", {
+    // Barre de vie
     frameWidth: 100,
     frameHeight: 90,
   });
-  this.load.image("asteroid", "img/sprite/asteroid.png");
-  this.load.bitmapFont("pixelFont", "img/font/font.png", "img/font/font.xml");
+  this.load.image("asteroid", "img/sprite/asteroid.png"); // Les Asteroids
+  this.load.bitmapFont("pixelFont", "img/font/font.png", "img/font/font.xml"); // La bitmap de texte
 
   // Chargement de l'audio
   // musique
@@ -110,9 +122,8 @@ function preload() {
   this.load.image("explodot", "img/sprite/dot_explosion.png");
 }
 function create() {
-  keyR = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
   // Ici on vas initialiser les variables, l'affichage ...
-  // le son ouais
+  // Initialisation du son
   beat1 = this.sound.add("beat1", { volume: 0.5 });
   beat2 = this.sound.add("beat2", { volume: 0.5 });
 
@@ -127,19 +138,21 @@ function create() {
   shotSound2 = this.sound.add("shot2", { volume: 0.3 });
   shotSound3 = this.sound.add("shot3", { volume: 0.3 });
 
+  // Pour les tableaux de son
   explosionTab.push(explosionSound1, explosionSound2, explosionSound3);
   shotTab.push(shotSound1, shotSound2, shotSound3);
 
-  //Sprite de notre vaisseau
-  bullet = this.physics.add.sprite(13, 37, "bullet");
-  bullet.destroy();
+  // Initialisation des sprites
   ship = this.physics.add.sprite(400, 300, "ship");
+  shipHp = this.physics.add.sprite(400, 300, "ship");
+  bullet = this.physics.add.sprite(13, 37, "bullet");
   asteroid = this.physics.add.sprite(600, 600, "asteroid");
+
+  shipHp.destroy();
+  bullet.destroy();
   asteroid.destroy();
 
-  shipHp = this.physics.add.sprite(400, 300, "ship");
-  shipHp.destroy();
-
+  // Animation pour le déplacement du vaiseau
   this.anims.create({
     key: "ship_movement",
     frames: this.anims.generateFrameNumbers("ship", {
@@ -150,6 +163,7 @@ function create() {
     repeat: 0,
   });
 
+  // Animation pour le l'arret
   this.anims.create({
     key: "ship_stop",
     frames: this.anims.generateFrameNumbers("ship", {
@@ -160,18 +174,23 @@ function create() {
     repeat: 0,
   });
 
-  //On lui donne une plus petite taille
-  ship.setScale(0.5);
+  // Configuration du vaisseau
 
-  //Règle la méthode de décélération
+  // On lui donne une plus petite taille
+  ship.setScale(0.5);
+  // Règle la méthode de décélération
   ship.setDamping(true);
-  //Réglage de la vitesse de décélération
+  // Réglage de la vitesse de décélération
   ship.setDrag(0.5);
-  //Règle la vitesse maximale de notre vaiseau
+  // Règle la vitesse maximale de notre vaiseau
   ship.setMaxVelocity(400);
 
+  // Configuration des variables d'input
   cursors = this.input.keyboard.createCursorKeys();
+  keyR = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
   spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+
+  // Initialisation des textes
   text = this.add.bitmapText(10, 15, "pixelFont", "", 20);
   endText = this.add
     .bitmapText(
@@ -219,19 +238,25 @@ function create() {
     )
     .setOrigin(0.5);
 
+  // Création des groupes de sprite
   asteroidsGroup = this.physics.add.group();
   bulletGroup = this.physics.add.group();
   shipHpGroup = this.physics.add.group();
 
+  // Collisions
   this.physics.add.overlap(ship, asteroidsGroup, killPlayer, null, this);
-  // generateAsteroid(this.physics, numberOfAsteroids);
 
+  // Lancement de la musique
   playMusic();
+
+  //Initialisation des variables globales de create()
   GLOBAL_Physics = this.physics;
   GLOBAL_Tween = this.tweens;
 
+  // Désactivation du vaisseau pour le menu de départ
   ship.disableBody(true, true);
 
+  //Clignotement du texte dans le menu
   blinkTextFunction(startText, 600);
 }
 function update() {
