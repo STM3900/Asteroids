@@ -81,10 +81,14 @@ var readyToReset = false;
 var cursors;
 let keyR;
 
+// Particle
+var particles;
+
 // Initialisation de phaser
 var game = new Phaser.Game(config);
 function preload() {
   // C'est là qu'on vas charger les images et les sons
+
   this.load.image("bullet", "img/sprite/bullet.png"); // Tir
   this.load.spritesheet("ship", "img/sprite/ship_animation.png", {
     // Vaisseau
@@ -119,10 +123,13 @@ function preload() {
   this.load.audio("shot3", "sound/shot/shot3.wav");
 
   // particule
-  this.load.image("explodot", "img/sprite/dot_explosion.png");
+  this.load.image("explodot", "img/sprite/dot_explosion_smol.png");
 }
 function create() {
   // Ici on vas initialiser les variables, l'affichage ...
+  // Initialisation des particle
+  particles = this.add.particles("explodot");
+
   // Initialisation du son
   beat1 = this.sound.add("beat1", { volume: 0.5 });
   beat2 = this.sound.add("beat2", { volume: 0.5 });
@@ -410,17 +417,32 @@ function generateAsteroid2(physics, asteroid, scale) {
 }
 
 function getCurrentTime() {
-  var time = Date.now();
+  let time = Date.now();
   return time;
 }
 
 function killAsteroid(projectile, asteroid) {
+  let dot = particles.createEmitter({
+    x: asteroid.x,
+    y: projectile.y,
+    speed: 250,
+    frequency: 20,
+    lifespan: 300,
+  });
+
+  setTimeout(() => {
+    dot.on = false;
+  }, 100);
+
   explosionTab[getRandomInt(3)].play();
   if (asteroid.scale == 1.5) {
     generateAsteroid2(this.physics, asteroid, 1);
+    dot.setScale(1.5);
   } else if (asteroid.scale == 1) {
     generateAsteroid2(this.physics, asteroid, 0.5);
+    dot.setScale(1.2);
   }
+
   projectile.destroy();
   asteroid.destroy();
   score += 15 * comboMultiplier; // Le multiplicateur de combo servira plus tard hihi
@@ -437,6 +459,20 @@ function killAsteroid(projectile, asteroid) {
 
 function killPlayer(ship) {
   if (ship.alpha == 1 && !shipIsDead) {
+    let dot = particles.createEmitter({
+      x: ship.x,
+      y: ship.y,
+      speed: 250,
+      frequency: 0,
+      lifespan: 350,
+    });
+
+    dot.setScale(1.5);
+
+    setTimeout(() => {
+      dot.on = false;
+    }, 110);
+
     shipIsDead = true;
     console.log("ship down");
     dieSound.play();
