@@ -287,14 +287,26 @@ function create() {
   rectangle2.body.setSize(50, 50, 0, 0);
   */
 
-  rectangleSprite = this.physics.add.sprite(600, 600, "rectangleSprite");
+  /*
+  var tween = this.tweens.add({
+    targets: rectangleSprite,
+    displayWidth: 500,
+    ease: "Power1",
+    duration: 1500,
+    repeat: 0,
+    callbackScope: this,
+  });
+  */
+
+  rectangleSprite = this.physics.add
+    .sprite(ship.x, ship.y, "rectangleSprite")
+    .setOrigin(0, 0);
   rectangleSprite.displayWidth = 300;
-  console.log(rectangleSprite);
 
   this.physics.add.overlap(
     rectangleSprite,
     asteroidsGroup,
-    killAsteroid,
+    testFunction,
     null,
     this
   );
@@ -365,21 +377,15 @@ function update() {
     }
   }
 
-  /*
   if (isShiftDown.isDown) {
-    if (rectangle) {
-      rectangle.destroy();
+    rectangleSprite.x = ship.x;
+    rectangleSprite.y = ship.y;
+    if (rectangleSprite.angle != ship.angle) {
+      rectangleSprite.angle = ship.angle;
     }
-    rectangle = this.add
-      .rectangle(ship.x, ship.y, 50, 1000, "0xffffff")
-      .setOrigin(0.5, 0);
-    rectangle.angle = ship.angle - 90;
-  } else {
-    if (rectangle) {
-      rectangle.destroy();
-    }
+  } else if (rectangleSprite) {
+    //rectangleSprite.destroy();
   }
-  */
 
   if (spaceBar.JustDown && !initiateGame) {
   }
@@ -706,4 +712,8 @@ function blinkTextFunction(blinkText, delay, blinker = false) {
     console.log("false");
     blinker = false;
   }
+}
+
+function testFunction() {
+  console.log("Touché !");
 }
