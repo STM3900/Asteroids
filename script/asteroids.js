@@ -84,6 +84,15 @@ let keyR;
 // Particle
 var particles;
 
+// c-c-c-combo
+
+var smallComboTab;
+var bigComboTab;
+
+var rectangle;
+var rectangle2;
+var rectangleSprite;
+
 // Initialisation de phaser
 var game = new Phaser.Game(config);
 function preload() {
@@ -124,6 +133,7 @@ function preload() {
 
   // particule
   this.load.image("explodot", "img/sprite/dot_explosion_smol.png");
+  this.load.image("rectangleSprite", "img/sprite/dot_explosion_smol.png");
 }
 function create() {
   // Ici on vas initialiser les variables, l'affichage ...
@@ -197,6 +207,10 @@ function create() {
   keyR = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
   spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
+  isShiftDown = this.input.keyboard.addKey(
+    Phaser.Input.Keyboard.KeyCodes.SHIFT
+  );
+
   // Initialisation des textes
   text = this.add.bitmapText(10, 15, "pixelFont", "", 20);
   endText = this.add
@@ -265,6 +279,25 @@ function create() {
 
   //Clignotement du texte dans le menu
   blinkTextFunction(startText, 600);
+
+  // AAAAAAAAAAAA LE RAYON
+  /*
+  rectangle2 = this.add.sprite(600, 100, null);
+  this.physics.world.enable(rectangle2);
+  rectangle2.body.setSize(50, 50, 0, 0);
+  */
+
+  rectangleSprite = this.physics.add.sprite(600, 600, "rectangleSprite");
+  rectangleSprite.displayWidth = 300;
+  console.log(rectangleSprite);
+
+  this.physics.add.overlap(
+    rectangleSprite,
+    asteroidsGroup,
+    killAsteroid,
+    null,
+    this
+  );
 }
 function update() {
   // C'est la boucle principale du jeu
@@ -331,6 +364,22 @@ function update() {
       }, 300);
     }
   }
+
+  /*
+  if (isShiftDown.isDown) {
+    if (rectangle) {
+      rectangle.destroy();
+    }
+    rectangle = this.add
+      .rectangle(ship.x, ship.y, 50, 1000, "0xffffff")
+      .setOrigin(0.5, 0);
+    rectangle.angle = ship.angle - 90;
+  } else {
+    if (rectangle) {
+      rectangle.destroy();
+    }
+  }
+  */
 
   if (spaceBar.JustDown && !initiateGame) {
   }
@@ -599,7 +648,6 @@ function resetGameEnd(isInitiate = false) {
       repeat: 0,
       onComplete: function () {
         titleText.setText("");
-        startText.setText("");
       },
       callbackScope: this,
     });
@@ -611,7 +659,6 @@ function resetGameEnd(isInitiate = false) {
       duration: 1500,
       repeat: 0,
       onComplete: function () {
-        titleText.setText("");
         startText.setText("");
       },
       callbackScope: this,
@@ -650,10 +697,13 @@ function resetGameEnd(isInitiate = false) {
 
 function blinkTextFunction(blinkText, delay, blinker = false) {
   metronom = blinker;
-  if (blinkText != "") {
+  if (blinkText.text != "") {
     setTimeout(() => {
       blinkText.setVisible(metronom);
       blinkTextFunction(blinkText, delay, !metronom);
     }, delay);
+  } else {
+    console.log("false");
+    blinker = false;
   }
 }
