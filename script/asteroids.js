@@ -38,6 +38,7 @@ var bulletGroup;
 var tempNot = false;
 var lastShot = 0;
 var cooldown = 300;
+var cooldownBeam = 0;
 var bulletSpeed = 1500;
 var activateAnim = false;
 
@@ -89,9 +90,10 @@ var particles;
 var smallComboTab;
 var bigComboTab;
 
-var rectangle;
-var rectangle2;
-var rectangleSprite;
+var beam;
+var beamGroup;
+var activateSuperShot = false;
+var superShot = false;
 
 // Initialisation de phaser
 var game = new Phaser.Game(config);
@@ -263,6 +265,7 @@ function create() {
   asteroidsGroup = this.physics.add.group();
   bulletGroup = this.physics.add.group();
   shipHpGroup = this.physics.add.group();
+  beamGroup = this.physics.add.group();
 
   // Collisions
   this.physics.add.overlap(ship, asteroidsGroup, killPlayer, null, this);
@@ -280,52 +283,22 @@ function create() {
   //Clignotement du texte dans le menu
   blinkTextFunction(startText, 600);
 
-  // AAAAAAAAAAAA LE RAYON
-  /*
-  rectangle2 = this.add.sprite(600, 100, null);
-  this.physics.world.enable(rectangle2);
-  rectangle2.body.setSize(50, 50, 0, 0);
-  */
-
-  /*
-  var tween = this.tweens.add({
-    targets: rectangleSprite,
-    displayWidth: 500,
-    ease: "Power1",
-    duration: 1500,
-    repeat: 0,
-    callbackScope: this,
-  });
-  */
-
-  rectangleSprite = this.physics.add
-    .sprite(ship.x, ship.y, "rectangleSprite")
-    .setOrigin(0, 0);
-  rectangleSprite.displayWidth = 300;
-
-  this.physics.add.overlap(
-    rectangleSprite,
-    asteroidsGroup,
-    testFunction,
-    null,
-    this
-  );
+  beam = this.physics.add.sprite(13, 37, "bullet");
+  beam.destroy();
 }
 function update() {
   // C'est la boucle principale du jeu
   if (cursors.up.isDown) {
-    if (true) {
-      if (!activateAnim) {
-        thrustSound.play({ loop: true });
-        ship.play("ship_movement", true);
-        activateAnim = true;
-      }
-      this.physics.velocityFromRotation(
-        ship.rotation,
-        1000,
-        ship.body.acceleration
-      );
+    if (!activateAnim) {
+      thrustSound.play({ loop: true });
+      ship.play("ship_movement", true);
+      activateAnim = true;
     }
+    this.physics.velocityFromRotation(
+      ship.rotation,
+      superShot ? 150 : 1000,
+      ship.body.acceleration
+    );
   } else {
     ship.setAcceleration(0);
     if (activateAnim) {
@@ -336,9 +309,9 @@ function update() {
   }
 
   if (cursors.left.isDown) {
-    ship.setAngularVelocity(-400);
+    superShot ? ship.setAngularVelocity(-50) : ship.setAngularVelocity(-400);
   } else if (cursors.right.isDown) {
-    ship.setAngularVelocity(400);
+    superShot ? ship.setAngularVelocity(50) : ship.setAngularVelocity(400);
   } else {
     ship.setAngularVelocity(0);
   }
@@ -377,17 +350,48 @@ function update() {
     }
   }
 
-  if (isShiftDown.isDown) {
-    rectangleSprite.x = ship.x;
-    rectangleSprite.y = ship.y;
-    if (rectangleSprite.angle != ship.angle) {
-      rectangleSprite.angle = ship.angle;
-    }
-  } else if (rectangleSprite) {
-    //rectangleSprite.destroy();
+  if (isShiftDown.isDown && !activateSuperShot) {
+    activateSuperShot = true;
+    superShot = true;
+    ship.setMaxVelocity(200);
+
+    setTimeout(() => {
+      superShot = false;
+      ship.setMaxVelocity(400);
+    }, 1500);
   }
 
-  if (spaceBar.JustDown && !initiateGame) {
+  if (superShot) {
+    if (getCurrentTime() >= lastShot + cooldownBeam) {
+      if (ship.active && tempNot) {
+        shotTab[getRandomInt(3)].play();
+        var currentBeam = beamGroup.create(ship.x, ship.y, "rectangleSprite");
+
+        currentBeam.setScale(2);
+        currentBeam.angle = ship.angle + 90;
+        let rad = Phaser.Math.DegToRad(ship.angle);
+        this.physics.velocityFromRotation(rad, 2200, currentBeam.body.velocity);
+
+        this.physics.add.overlap(
+          currentBeam,
+          asteroidsGroup,
+          killAsteroid,
+          null,
+          this
+        );
+        lastShot = getCurrentTime();
+        setTimeout(() => {
+          currentBeam.destroy();
+        }, 5000);
+      } else if (!initiateGame) {
+        initiateGame = true;
+        resetGameEnd(true);
+
+        setTimeout(() => {
+          tempNot = true;
+        }, 300);
+      }
+    }
   }
 
   this.physics.world.wrap(ship, 25);
@@ -514,6 +518,7 @@ function killAsteroid(projectile, asteroid) {
 
 function killPlayer(ship) {
   if (ship.alpha == 1 && !shipIsDead) {
+    activateSuperShot = false;
     let dot = particles.createEmitter({
       x: ship.x,
       y: ship.y,
@@ -643,6 +648,7 @@ function cleanAsteroids(i, size, delay) {
 }
 
 function resetGameEnd(isInitiate = false) {
+  activateSuperShot = false;
   score = 0;
 
   if (isInitiate) {
