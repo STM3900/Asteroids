@@ -734,6 +734,7 @@ function cleanAsteroids(i, size, delay) {
 
 function resetGameEnd(isInitiate = false) {
   activateSuperShot = false;
+  numberOfAsteroids = 4;
   score = 0;
 
   if (isInitiate) {
@@ -843,7 +844,7 @@ function updateComboBar(combo) {
       comboBarGroup.getChildren()[i].alpha = 1;
     }
   }
-  if (checkpoint) {
+  if (checkpoint && !superComboActive) {
     comboCheckpoint.alpha = 1;
   }
 }
