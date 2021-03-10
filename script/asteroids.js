@@ -17,6 +17,8 @@ var config = {
   },
 };
 // Variables globales
+// SELECTEUR HTML
+const HTML_body = document.querySelector("*");
 
 // Pour le texte
 var text;
@@ -86,10 +88,18 @@ let keyR;
 var particles;
 
 // c-c-c-combo
+var smallCombo = 0;
+var checkpoint = false;
+var comboBar;
+var comboBarGroup;
+var comboCheckpoint;
 
 var smallComboTab;
 var bigComboTab;
 
+var superComboActive = false;
+
+var hit = false;
 var beam;
 var beamGroup;
 var activateSuperShot = false;
@@ -136,6 +146,10 @@ function preload() {
   // particule
   this.load.image("explodot", "img/sprite/dot_explosion_smol.png");
   this.load.image("rectangleSprite", "img/sprite/dot_explosion_smol.png");
+
+  // combo
+  this.load.image("comboMetter", "img/sprite/dot_explosion_smol.png");
+  this.load.image("comboCheckpoint", "img/sprite/dot_explosion_smol.png");
 }
 function create() {
   // Ici on vas initialiser les variables, l'affichage ...
@@ -166,10 +180,20 @@ function create() {
   shipHp = this.physics.add.sprite(400, 300, "ship");
   bullet = this.physics.add.sprite(13, 37, "bullet");
   asteroid = this.physics.add.sprite(600, 600, "asteroid");
+  comboBar = this.physics.add.sprite(400, 300, "comboMetter");
+  comboCheckpoint = this.physics.add.sprite(
+    config.width / 2,
+    25,
+    "comboMetter"
+  );
+  comboCheckpoint.tint = 0xffff00;
+  comboCheckpoint.setScale(1.5);
+  comboCheckpoint.alpha = 0.4;
 
   shipHp.destroy();
   bullet.destroy();
   asteroid.destroy();
+  comboBar.destroy();
 
   // Animation pour le déplacement du vaiseau
   this.anims.create({
@@ -266,6 +290,7 @@ function create() {
   bulletGroup = this.physics.add.group();
   shipHpGroup = this.physics.add.group();
   beamGroup = this.physics.add.group();
+  comboBarGroup = this.physics.add.group();
 
   // Collisions
   this.physics.add.overlap(ship, asteroidsGroup, killPlayer, null, this);
@@ -283,8 +308,14 @@ function create() {
   //Clignotement du texte dans le menu
   blinkTextFunction(startText, 600);
 
+  // Pour le rayon
   beam = this.physics.add.sprite(13, 37, "bullet");
   beam.destroy();
+
+  // Combo
+  generateComboBar();
+  comboBarGroup.setVisible(false);
+  comboCheckpoint.setVisible(false);
 }
 function update() {
   // C'est la boucle principale du jeu
@@ -337,7 +368,18 @@ function update() {
         this
       );
       lastShot = getCurrentTime();
+
       setTimeout(() => {
+        if (currentBullet._eventsCount != 0 && !superComboActive) {
+          if (checkpoint) {
+            smallCombo = 5;
+            resetComboBar();
+          } else {
+            smallCombo = 0;
+            console.log("combo reset");
+            resetComboBar();
+          }
+        }
         currentBullet.destroy();
       }, 500);
     } else if (!initiateGame) {
@@ -350,14 +392,20 @@ function update() {
     }
   }
 
-  if (isShiftDown.isDown && !activateSuperShot) {
+  if (isShiftDown.isDown && !activateSuperShot && ship.active) {
+    resetComboBar(true);
     activateSuperShot = true;
+
+    HTML_body.classList.add("super-shot");
+
     superShot = true;
     ship.setMaxVelocity(200);
 
     setTimeout(() => {
       superShot = false;
       ship.setMaxVelocity(400);
+
+      HTML_body.classList.remove("super-shot");
     }, 1500);
   }
 
@@ -382,7 +430,7 @@ function update() {
         lastShot = getCurrentTime();
         setTimeout(() => {
           currentBeam.destroy();
-        }, 5000);
+        }, 500);
       } else if (!initiateGame) {
         initiateGame = true;
         resetGameEnd(true);
@@ -493,6 +541,30 @@ function killAsteroid(projectile, asteroid) {
     dot.on = false;
   }, 100);
 
+  if (!superShot) {
+    smallCombo++;
+  }
+  console.log(smallCombo);
+  if (smallCombo == 5) {
+    checkpoint = true;
+  }
+
+  if (smallCombo == 10) {
+    superComboActive = true;
+    blinkComboBar(100);
+    cooldown = 100;
+    console.log("SUPER COMBOOOO");
+    setTimeout(() => {
+      superComboActive = false;
+      checkpoint = false;
+      cooldown = 300;
+      smallCombo = 0;
+      resetComboBar(true);
+    }, 3000);
+  }
+
+  updateComboBar(smallCombo);
+
   explosionTab[getRandomInt(3)].play();
   if (asteroid.scale == 1.5) {
     generateAsteroid2(this.physics, asteroid, 1);
@@ -504,9 +576,17 @@ function killAsteroid(projectile, asteroid) {
 
   projectile.destroy();
   asteroid.destroy();
-  score += 15 * comboMultiplier; // Le multiplicateur de combo servira plus tard hihi
+  score += 16 * comboMultiplier; // Le multiplicateur de combo servira plus tard hihi
   let scoreFormated = zeroPad(score, 6);
   text.setText(`SCORE:${scoreFormated}`);
+
+  if (smallCombo >= 10) {
+    comboMultiplier = 2;
+  } else if (smallCombo >= 5) {
+    comboMultiplier = 1.5;
+  } else {
+    comboMultiplier = 1;
+  }
 
   if (asteroidsGroup.children.size == 0) {
     numberOfAsteroids++;
@@ -518,6 +598,10 @@ function killAsteroid(projectile, asteroid) {
 
 function killPlayer(ship) {
   if (ship.alpha == 1 && !shipIsDead) {
+    superComboActive = false;
+    smallCombo = 0;
+    resetComboBar(true);
+    superShot = false;
     activateSuperShot = false;
     let dot = particles.createEmitter({
       x: ship.x,
@@ -534,11 +618,10 @@ function killPlayer(ship) {
     }, 110);
 
     shipIsDead = true;
-    console.log("ship down");
+    console.log("ship ded");
     dieSound.play();
     hp--;
     destroyLife();
-    console.log(hp);
     if (hp > 0) {
       ship.angle = -90;
       ship.disableBody(true, true);
@@ -565,6 +648,8 @@ function killPlayer(ship) {
         });
       }, 500);
     } else {
+      smallCombo = 0;
+      resetComboBar(true);
       console.log("T'as perdu mdr");
       ship.disableBody(true, true);
       endGame();
@@ -672,6 +757,8 @@ function resetGameEnd(isInitiate = false) {
       repeat: 0,
       onComplete: function () {
         startText.setText("");
+        comboBarGroup.setVisible(true);
+        comboCheckpoint.setVisible(true);
       },
       callbackScope: this,
     });
@@ -715,11 +802,58 @@ function blinkTextFunction(blinkText, delay, blinker = false) {
       blinkTextFunction(blinkText, delay, !metronom);
     }, delay);
   } else {
-    console.log("false");
     blinker = false;
   }
 }
 
-function testFunction() {
-  console.log("Touché !");
+function blinkComboBar(delay, blinker = false) {
+  metronom = blinker;
+  if (superComboActive) {
+    setTimeout(() => {
+      for (let i = 0; i < 10; i++) {
+        metronom
+          ? (comboBarGroup.getChildren()[i].alpha = 0.4)
+          : (comboBarGroup.getChildren()[i].alpha = 0);
+      }
+      metronom ? (comboCheckpoint.alpha = 0.4) : (comboCheckpoint.alpha = 0);
+      blinkComboBar(delay, !metronom);
+    }, delay);
+  } else {
+    blinker = false;
+  }
+}
+
+function generateComboBar() {
+  for (let i = 0; i < 10; i++) {
+    comboBar = comboBarGroup.create(
+      config.width / 2 +
+        comboBarGroup.getChildren().length * 40 -
+        195 +
+        (comboBarGroup.getChildren().length >= 5 ? 30 : 0),
+      25,
+      "comboMetter"
+    );
+    comboBar.alpha = 0.4;
+  }
+}
+
+function updateComboBar(combo) {
+  if (combo <= 10) {
+    for (let i = 0; i < combo; i++) {
+      comboBarGroup.getChildren()[i].alpha = 1;
+    }
+  }
+  if (checkpoint) {
+    comboCheckpoint.alpha = 1;
+  }
+}
+
+function resetComboBar(fullreset = false) {
+  comboCheckpoint.alpha = 0.4;
+
+  for (let i = 9; i >= (checkpoint && !fullreset ? 5 : 0); i--) {
+    comboBarGroup.getChildren()[i].alpha = 0.4;
+  }
+
+  checkpoint = false;
 }
