@@ -74,6 +74,7 @@ var explosionSound3;
 var shotSound1;
 var shotSound2;
 var shotSound3;
+var machineGun;
 
 // Tableau de musique (pour appeler des sons différents aléatoirement)
 explosionTab = [];
@@ -142,6 +143,7 @@ function preload() {
   this.load.audio("shot1", "sound/shot/shot1.wav");
   this.load.audio("shot2", "sound/shot/shot2.wav");
   this.load.audio("shot3", "sound/shot/shot3.wav");
+  this.load.audio("machineGun", "sound/shot/machine_gun.wav");
 
   // particule
   this.load.image("explodot", "img/sprite/dot_explosion_smol.png");
@@ -170,6 +172,7 @@ function create() {
   shotSound1 = this.sound.add("shot1", { volume: 0.3 });
   shotSound2 = this.sound.add("shot2", { volume: 0.3 });
   shotSound3 = this.sound.add("shot3", { volume: 0.3 });
+  machineGun = this.sound.add("machineGun", { volume: 0.8 });
 
   // Pour les tableaux de son
   explosionTab.push(explosionSound1, explosionSound2, explosionSound3);
@@ -394,6 +397,7 @@ function update() {
 
   if (isShiftDown.isDown && !activateSuperShot && ship.active) {
     resetComboBar(true);
+    machineGun.play();
     activateSuperShot = true;
 
     HTML_body.classList.add("super-shot");
@@ -412,7 +416,6 @@ function update() {
   if (superShot) {
     if (getCurrentTime() >= lastShot + cooldownBeam) {
       if (ship.active && tempNot) {
-        shotTab[getRandomInt(3)].play();
         var currentBeam = beamGroup.create(ship.x, ship.y, "rectangleSprite");
 
         currentBeam.setScale(2);
@@ -733,6 +736,7 @@ function cleanAsteroids(i, size, delay) {
 }
 
 function resetGameEnd(isInitiate = false) {
+  speedRate = 1100;
   activateSuperShot = false;
   numberOfAsteroids = 4;
   score = 0;
