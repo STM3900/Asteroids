@@ -106,6 +106,10 @@ var beamGroup;
 var activateSuperShot = false;
 var superShot = false;
 
+var comboSound;
+var comboEnd;
+var superCombo;
+
 // Initialisation de phaser
 var game = new Phaser.Game(config);
 function preload() {
@@ -152,6 +156,9 @@ function preload() {
   // combo
   this.load.image("comboMetter", "img/sprite/dot_explosion_smol.png");
   this.load.image("comboCheckpoint", "img/sprite/dot_explosion_smol.png");
+  this.load.audio("comboSound", "sound/combo/combo1.wav");
+  this.load.audio("comboBreak", "sound/combo/comboBreak.wav");
+  this.load.audio("superCombo", "sound/combo/supercombo.wav");
 }
 function create() {
   // Ici on vas initialiser les variables, l'affichage ...
@@ -169,10 +176,22 @@ function create() {
   explosionSound2 = this.sound.add("explosion2", { volume: 0.1 });
   explosionSound3 = this.sound.add("explosion3", { volume: 0.1 });
 
-  shotSound1 = this.sound.add("shot1", { volume: 0.3 });
-  shotSound2 = this.sound.add("shot2", { volume: 0.3 });
-  shotSound3 = this.sound.add("shot3", { volume: 0.3 });
+  shotSound1 = this.sound.add("shot1", { volume: 0.2, detune: -100 });
+  shotSound2 = this.sound.add("shot2", { volume: 0.2, detune: -100 });
+  shotSound3 = this.sound.add("shot3", { volume: 0.2, detune: -100 });
   machineGun = this.sound.add("machineGun", { volume: 0.8 });
+
+  comboSound = this.sound.add("comboSound", { volume: 0.3, detune: -200 });
+  comboEnd = this.sound.add("comboBreak", {
+    volume: 0.3,
+    detune: -2000,
+    rate: 1.3,
+  });
+  superCombo = this.sound.add("superCombo", {
+    volume: 0.2,
+    detune: 1000,
+    rate: 0.1,
+  });
 
   // Pour les tableaux de son
   explosionTab.push(explosionSound1, explosionSound2, explosionSound3);
@@ -298,9 +317,6 @@ function create() {
   // Collisions
   this.physics.add.overlap(ship, asteroidsGroup, killPlayer, null, this);
 
-  // Lancement de la musique
-  playMusic();
-
   //Initialisation des variables globales de create()
   GLOBAL_Physics = this.physics;
   GLOBAL_Tween = this.tweens;
@@ -376,10 +392,19 @@ function update() {
         if (currentBullet._eventsCount != 0 && !superComboActive) {
           if (checkpoint) {
             smallCombo = 5;
+            comboSound.detune = 600;
+
+            comboEnd.play();
+            comboEnd.detune = -1500;
             resetComboBar();
           } else {
+            if (smallCombo > 0) {
+              comboEnd.play();
+            }
             smallCombo = 0;
             console.log("combo reset");
+            comboSound.detune = -200;
+            comboEnd.detune = -2000;
             resetComboBar();
           }
         }
@@ -545,6 +570,9 @@ function killAsteroid(projectile, asteroid) {
   }, 100);
 
   if (!superShot) {
+    comboSound.play();
+    console.log(comboSound.detune);
+    comboSound.detune += 200;
     smallCombo++;
   }
   console.log(smallCombo);
@@ -557,11 +585,14 @@ function killAsteroid(projectile, asteroid) {
     blinkComboBar(100);
     cooldown = 100;
     console.log("SUPER COMBOOOO");
+    playSuperComboSound(1600);
     setTimeout(() => {
       superComboActive = false;
+      superCombo.stop();
       checkpoint = false;
       cooldown = 300;
       smallCombo = 0;
+      comboSound.detune = -200;
       resetComboBar(true);
     }, 3000);
   }
@@ -602,7 +633,11 @@ function killAsteroid(projectile, asteroid) {
 function killPlayer(ship) {
   if (ship.alpha == 1 && !shipIsDead) {
     superComboActive = false;
+    if (smallCombo > 0) {
+      comboEnd.play();
+    }
     smallCombo = 0;
+    comboSound.detune = -200;
     resetComboBar(true);
     superShot = false;
     activateSuperShot = false;
@@ -652,6 +687,7 @@ function killPlayer(ship) {
       }, 500);
     } else {
       smallCombo = 0;
+      comboSound.detune = -200;
       resetComboBar(true);
       console.log("T'as perdu mdr");
       ship.disableBody(true, true);
@@ -708,6 +744,7 @@ function playMusic() {
 }
 
 function endGame() {
+  ifActive = false;
   readyToReset = true;
   let scoreFormated = zeroPad(score, 6);
   endText.setText("GAME OVER");
@@ -789,6 +826,8 @@ function resetGameEnd(isInitiate = false) {
     onComplete: function () {
       ship.body.velocity.y = 0;
       ship.alpha = 1;
+      ifActive = true;
+      playMusic();
       generateAsteroid(GLOBAL_Physics, numberOfAsteroids);
       if (isInitiate) {
         text.setText("SCORE:000000");
@@ -861,4 +900,13 @@ function resetComboBar(fullreset = false) {
   }
 
   checkpoint = false;
+}
+
+function playSuperComboSound(duration) {
+  if (superComboActive) {
+    superCombo.play();
+    setTimeout(() => {
+      playSuperComboSound(duration);
+    }, duration);
+  }
 }
