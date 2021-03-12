@@ -200,7 +200,8 @@ function create() {
   shotTab.push(shotSound1, shotSound2, shotSound3);
 
   // Initialisation des sprites
-  ship = this.physics.add.sprite(400, 300, "ship");
+  ship = this.physics.add.sprite(400, 300, "ship").setImmovable(true);
+  ship.setSize(25, 22.5, true);
   shipHp = this.physics.add.sprite(400, 300, "ship");
   bullet = this.physics.add.sprite(13, 37, "bullet");
   asteroid = this.physics.add.sprite(600, 600, "asteroid");
