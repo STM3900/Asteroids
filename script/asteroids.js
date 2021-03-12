@@ -397,21 +397,17 @@ function update() {
         if (currentBullet._eventsCount != 0 && !superComboActive) {
           if (checkpoint) {
             smallCombo = 5;
-            comboSound.detune = 600;
 
+            comboSound.detune = 600;
             comboEnd.play();
             comboEnd.detune = -1500;
+
             resetComboBar();
           } else {
             if (smallCombo > 0) {
               comboEnd.play();
             }
-            smallCombo = 0;
-            comboStatusText.setText("");
-            console.log("combo reset");
-            comboSound.detune = -200;
-            comboEnd.detune = -2000;
-            resetComboBar();
+            resetCombo();
           }
         }
         currentBullet.destroy();
@@ -595,12 +591,8 @@ function killAsteroid(projectile, asteroid) {
     setTimeout(() => {
       superComboActive = false;
       superCombo.stop();
-      checkpoint = false;
       cooldown = 300;
-      smallCombo = 0;
-      comboStatusText.setText("");
-      comboSound.detune = -200;
-      resetComboBar(true);
+      resetCombo(true);
     }, 3000);
   }
 
@@ -651,9 +643,7 @@ function killPlayer(ship) {
     if (smallCombo > 0) {
       comboEnd.play();
     }
-    smallCombo = 0;
-    comboStatusText.setText("");
-    comboSound.detune = -200;
+    resetCombo();
     resetComboBar(true);
     superShot = false;
     activateSuperShot = false;
@@ -702,9 +692,7 @@ function killPlayer(ship) {
         });
       }, 500);
     } else {
-      smallCombo = 0;
-      comboStatusText.setText("");
-      comboSound.detune = -200;
+      resetCombo();
       resetComboBar(true);
       console.log("T'as perdu mdr");
       ship.disableBody(true, true);
@@ -907,6 +895,16 @@ function updateComboBar(combo) {
   if (checkpoint && !superComboActive) {
     comboCheckpoint.alpha = 1;
   }
+}
+
+function resetCombo(fullreset = false) {
+  console.log("combo reset");
+  smallCombo = 0;
+  checkpoint = false;
+  comboStatusText.setText("");
+  comboSound.detune = -200;
+  comboEnd.detune = -2000;
+  resetComboBar(fullreset);
 }
 
 function resetComboBar(fullreset = false) {
