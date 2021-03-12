@@ -110,6 +110,8 @@ var comboSound;
 var comboEnd;
 var superCombo;
 
+var comboStatusText = "";
+
 // Initialisation de phaser
 var game = new Phaser.Game(config);
 function preload() {
@@ -307,6 +309,8 @@ function create() {
     )
     .setOrigin(0.5);
 
+  comboStatusText = this.add.bitmapText(10, 45, "pixelFont", "", 16);
+  blinkTextFunction(comboStatusText, 200);
   // Création des groupes de sprite
   asteroidsGroup = this.physics.add.group();
   bulletGroup = this.physics.add.group();
@@ -402,6 +406,7 @@ function update() {
               comboEnd.play();
             }
             smallCombo = 0;
+            comboStatusText.setText("");
             console.log("combo reset");
             comboSound.detune = -200;
             comboEnd.detune = -2000;
@@ -592,6 +597,7 @@ function killAsteroid(projectile, asteroid) {
       checkpoint = false;
       cooldown = 300;
       smallCombo = 0;
+      comboStatusText.setText("");
       comboSound.detune = -200;
       resetComboBar(true);
     }, 3000);
@@ -616,10 +622,18 @@ function killAsteroid(projectile, asteroid) {
 
   if (smallCombo >= 10) {
     comboMultiplier = 2;
+    if (comboStatusText.text == "x1.5") {
+      comboStatusText.setText("x2");
+    }
   } else if (smallCombo >= 5) {
     comboMultiplier = 1.5;
+    if (comboStatusText.text == "") {
+      comboStatusText.setText("x1.5");
+      blinkTextFunction(comboStatusText, 400);
+    }
   } else {
     comboMultiplier = 1;
+    comboStatusText.setText("");
   }
 
   if (asteroidsGroup.children.size == 0) {
@@ -637,6 +651,7 @@ function killPlayer(ship) {
       comboEnd.play();
     }
     smallCombo = 0;
+    comboStatusText.setText("");
     comboSound.detune = -200;
     resetComboBar(true);
     superShot = false;
@@ -687,6 +702,7 @@ function killPlayer(ship) {
       }, 500);
     } else {
       smallCombo = 0;
+      comboStatusText.setText("");
       comboSound.detune = -200;
       resetComboBar(true);
       console.log("T'as perdu mdr");
