@@ -361,7 +361,7 @@ function create() {
 }
 function update() {
   // C'est la boucle principale du jeu
-  if (cursors.up.isDown) {
+  if (cursors.up.isDown && ship.active) {
     if (!activateAnim) {
       thrustSound.play({ loop: true });
       ship.play("ship_movement", true);
@@ -437,11 +437,11 @@ function update() {
 
       setTimeout(() => {
         tempNot = true;
-      }, 300);
+      }, 1500);
     }
   }
 
-  if (isShiftDown.isDown && !activateSuperShot && ship.active) {
+  if (isShiftDown.isDown && !activateSuperShot && ship.active && tempNot) {
     resetComboBar(true);
     machineGun.play();
     activateSuperShot = true;
@@ -461,7 +461,7 @@ function update() {
 
   if (superShot) {
     if (getCurrentTime() >= lastShot + cooldownBeam) {
-      if (ship.active && tempNot) {
+      if (ship.active) {
         var currentBeam = beamGroup.create(ship.x, ship.y, "rectangleSprite");
 
         currentBeam.setScale(2);
@@ -486,7 +486,7 @@ function update() {
 
         setTimeout(() => {
           tempNot = true;
-        }, 300);
+        }, 1500);
       }
     }
   }
