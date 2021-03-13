@@ -112,6 +112,8 @@ var superCombo;
 
 var comboStatusText = "";
 
+fetch("scoreList.json");
+
 // Initialisation de phaser
 var game = new Phaser.Game(config);
 function preload() {
@@ -340,6 +342,9 @@ function create() {
   generateComboBar();
   comboBarGroup.setVisible(false);
   comboCheckpoint.setVisible(false);
+
+  // génération des asteroids du menu
+  generateAsteroid(this.physics, numberOfAsteroids);
 }
 function update() {
   // C'est la boucle principale du jeu
@@ -415,6 +420,7 @@ function update() {
     } else if (!initiateGame) {
       initiateGame = true;
       resetGameEnd(true);
+      slideDown();
 
       setTimeout(() => {
         tempNot = true;
@@ -923,5 +929,22 @@ function playSuperComboSound(duration) {
     setTimeout(() => {
       playSuperComboSound(duration);
     }, duration);
+  }
+}
+
+function slideDown() {
+  for(let i = 0; i < asteroidsGroup.getChildren().length; i++) {
+    let children = asteroidsGroup.getChildren()[i]
+    var tween = this.GLOBAL_Tween.add({
+      targets: children,
+      y: 1000 + children.y,
+      ease: "Quad.easeInOut",
+      duration: 1100 + getRandomInt(300),
+      repeat: 0,
+      onComplete: function () {
+        children.destroy();
+      },
+      callbackScope: this,
+    });
   }
 }
