@@ -47,6 +47,7 @@ var activateAnim = false;
 // Pour les asteroids
 var asteroid;
 var numberOfAsteroids = 4;
+var asteroidWrap = true;
 
 // Pour le vaisseau
 var ship;
@@ -344,7 +345,7 @@ function create() {
   comboCheckpoint.setVisible(false);
 
   // génération des asteroids du menu
-  generateAsteroid(this.physics, numberOfAsteroids);
+  generateAsteroid(this.physics, 8);
 }
 function update() {
   // C'est la boucle principale du jeu
@@ -479,8 +480,8 @@ function update() {
   }
 
   this.physics.world.wrap(ship, 25);
-  this.physics.world.wrap(asteroidsGroup, 50);
   this.physics.world.wrap(bulletGroup, 25);
+  if (asteroidWrap) this.physics.world.wrap(asteroidsGroup, 50);
 
   if (keyR.isDown && readyToReset) {
     console.log("Reset !");
@@ -790,6 +791,7 @@ function resetGameEnd(isInitiate = false) {
   score = 0;
 
   if (isInitiate) {
+    asteroidWrap = false;
     var tween = this.GLOBAL_Tween.add({
       targets: titleText,
       y: 1000 + titleText.y,
@@ -812,6 +814,7 @@ function resetGameEnd(isInitiate = false) {
         startText.setText("");
         comboBarGroup.setVisible(true);
         comboCheckpoint.setVisible(true);
+        asteroidWrap = true;
       },
       callbackScope: this,
     });
@@ -933,13 +936,13 @@ function playSuperComboSound(duration) {
 }
 
 function slideDown() {
-  for(let i = 0; i < asteroidsGroup.getChildren().length; i++) {
-    let children = asteroidsGroup.getChildren()[i]
+  for (let i = 0; i < asteroidsGroup.getChildren().length; i++) {
+    let children = asteroidsGroup.getChildren()[i];
     var tween = this.GLOBAL_Tween.add({
       targets: children,
-      y: 1000 + children.y,
+      y: 900 + children.y,
       ease: "Quad.easeInOut",
-      duration: 1100 + getRandomInt(300),
+      duration: 1400 + getRandomInt(100),
       repeat: 0,
       onComplete: function () {
         children.destroy();
