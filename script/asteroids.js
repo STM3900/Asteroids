@@ -110,6 +110,7 @@ var superShot = false;
 var comboSound;
 var comboEnd;
 var superCombo;
+var superComboText = "";
 
 var comboStatusText = "";
 
@@ -312,6 +313,17 @@ function create() {
       16
     )
     .setOrigin(0.5);
+  superComboText = this.add
+    .bitmapText(
+      this.cameras.main.worldView.x + this.cameras.main.width / 2,
+      this.cameras.main.worldView.y + this.cameras.main.height / 2,
+      "pixelFont",
+      "",
+      24
+    )
+    .setOrigin(0.5);
+  superComboText.visible = false;
+  superComboText.alpha = 0.5;
 
   comboStatusText = this.add.bitmapText(10, 45, "pixelFont", "", 16);
   blinkTextFunction(comboStatusText, 200);
@@ -583,6 +595,11 @@ function killAsteroid(projectile, asteroid) {
     console.log(comboSound.detune);
     comboSound.detune += 200;
     smallCombo++;
+    if (superComboText.visible) {
+      superComboText.scale = 1 + smallCombo / 10;
+      superComboText.setText(smallCombo);
+      console.log(superComboText.fontData.size);
+    }
   }
   console.log(smallCombo);
   if (smallCombo == 5) {
@@ -591,14 +608,23 @@ function killAsteroid(projectile, asteroid) {
 
   if (smallCombo == 10) {
     superComboActive = true;
+    superComboText.scale = 1 + smallCombo / 10;
+    superComboText.setText(smallCombo);
+    superComboText.visible = true;
     blinkComboBar(100);
     cooldown = 100;
     console.log("SUPER COMBOOOO");
     playSuperComboSound(1600);
     setTimeout(() => {
       superComboActive = false;
+      superComboText.visible = false;
       superCombo.stop();
       cooldown = 300;
+
+      score += smallCombo * 2;
+      let scoreFormated = zeroPad(score, 6);
+      text.setText(`SCORE:${scoreFormated}`);
+
       resetCombo(true);
     }, 3000);
   }
