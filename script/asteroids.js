@@ -1,3 +1,10 @@
+//TODO
+// - Améliorer le code (optimisation et fragmentation en fonctions et fichers)
+// - Système de pause et pour couper le son
+// - Bonus (pour ralentir le temps ou jsp ?)
+// - Amélioration de l'affichage
+// - Amélioration du gameplay etou
+
 var config = {
   parent: "asteroids", // Affiche le jeu dans le div id="asteroids"
   width: 1440,
@@ -113,8 +120,6 @@ var superCombo;
 var superComboText = "";
 
 var comboStatusText = "";
-
-fetch("scoreList.json");
 
 // Initialisation de phaser
 var game = new Phaser.Game(config);
@@ -786,6 +791,12 @@ function endGame() {
   readyToReset = true;
   let scoreFormated = zeroPad(score, 6);
   endText.setText("GAME OVER");
+  //TODO : Ajouter un système de classement de score
+  // - Stocké en bdd
+  // - Un nom, sans accent, de x lettres max (3 ? 4 ? + ?)
+  // - Il ne peut y avoir que 5 meilleurs scores
+  // - Affiché directement dans le jeu, on fera le select au lancement
+  // - Bdd mySql, (utiliser php ? node ?)
   endTextScore.setText(`SCORE:${scoreFormated}`);
   endTextReturn.setText("PRESS R TO RESTART");
   blinkTextFunction(endTextReturn, 600);
