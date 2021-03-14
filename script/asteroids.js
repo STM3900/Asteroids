@@ -988,3 +988,12 @@ function slideDown() {
     });
   }
 }
+
+let scoreList = [];
+
+fetch("http://127.0.0.1:3000/scores")
+  .then((response) => response.json())
+  .then((response) => (scoreList = JSON.stringify(response)))
+  .catch((error) => console.error("Erreur : " + error));
+
+console.log(scoreList);

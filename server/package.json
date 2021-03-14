@@ -1,0 +1,16 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "pour les scores",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Théo",
+  "license": "ISC",
+  "dependencies": {
+    "fastify": "^3.14.0",
+    "mariadb": "^2.5.3"
+  }
+}
