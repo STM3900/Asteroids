@@ -5,6 +5,20 @@
 // - Amélioration de l'affichage
 // - Amélioration du gameplay etou
 
+let scoreList = [];
+let isScoreListAvaible = false;
+
+fetch("http://127.0.0.1:3000/scores")
+  .then((response) => response.json())
+  .then(
+    (response) => (
+      (scoreList = response),
+      (isScoreListAvaible = true),
+      console.log(scoreList, isScoreListAvaible)
+    )
+  )
+  .catch((error) => console.error("Erreur : " + error));
+
 var config = {
   parent: "asteroids", // Affiche le jeu dans le div id="asteroids"
   width: 1440,
@@ -40,6 +54,9 @@ var initiateGame = false;
 // Score
 var score = 0;
 var comboMultiplier = 1;
+
+// Classements
+var scoreListText;
 
 // Pour les tirs
 var bullet;
@@ -276,7 +293,7 @@ function create() {
   endText = this.add
     .bitmapText(
       this.cameras.main.worldView.x + this.cameras.main.width / 2,
-      this.cameras.main.worldView.y + this.cameras.main.height / 2 - 20,
+      this.cameras.main.worldView.y + this.cameras.main.height / 2 - 160,
       "pixelFont",
       "",
       32
@@ -285,7 +302,7 @@ function create() {
   endTextScore = this.add
     .bitmapText(
       this.cameras.main.worldView.x + this.cameras.main.width / 2,
-      this.cameras.main.worldView.y + this.cameras.main.height / 2 + 30,
+      this.cameras.main.worldView.y + this.cameras.main.height / 2 - 110,
       "pixelFont",
       "",
       32
@@ -294,7 +311,7 @@ function create() {
   endTextReturn = this.add
     .bitmapText(
       this.cameras.main.worldView.x + this.cameras.main.width / 2,
-      this.cameras.main.worldView.y + this.cameras.main.height / 2 + 70,
+      this.cameras.main.worldView.y + this.cameras.main.height / 2 + 240,
       "pixelFont",
       "",
       10
@@ -329,6 +346,16 @@ function create() {
     .setOrigin(0.5);
   superComboText.visible = false;
   superComboText.alpha = 0.5;
+
+  scoreListText = this.add
+    .bitmapText(
+      this.cameras.main.worldView.x + this.cameras.main.width / 2,
+      this.cameras.main.worldView.y + this.cameras.main.height / 2 + 90,
+      "pixelFont",
+      "",
+      24
+    )
+    .setOrigin(0.6, 0.5);
 
   comboStatusText = this.add.bitmapText(10, 45, "pixelFont", "", 16);
   blinkTextFunction(comboStatusText, 200);
@@ -797,6 +824,10 @@ function endGame() {
   // - Il ne peut y avoir que 5 meilleurs scores
   // - Affiché directement dans le jeu, on fera le select au lancement
   // - Bdd mySql, (utiliser php ? node ?)
+  if (isScoreListAvaible) {
+    checkBestScore(score, scoreList);
+    generateScores(scoreList);
+  }
   endTextScore.setText(`SCORE:${scoreFormated}`);
   endTextReturn.setText("PRESS R TO RESTART");
   blinkTextFunction(endTextReturn, 600);
@@ -805,6 +836,7 @@ function endGame() {
 function resetGameBegin() {
   readyToReset = false;
   shipIsDead = false;
+  scoreListText.setText("");
   endText.setText("");
   endTextScore.setText("");
   endTextReturn.setText("");
@@ -989,11 +1021,56 @@ function slideDown() {
   }
 }
 
-let scoreList = [];
+//TODO : REVOIR COMMENT FAIRE LA DISPOSITION DE TEXTE AVEC UN TABLEAU ETOU
+function cutStringList(list, size) {
+  for (let i = 0; i < 5; i++) {
+    list[i].name = list[i].name.substring(0, size);
+  }
 
-fetch("http://127.0.0.1:3000/scores")
-  .then((response) => response.json())
-  .then((response) => (scoreList = JSON.stringify(response)))
-  .catch((error) => console.error("Erreur : " + error));
+  return list;
+}
 
-console.log(scoreList);
+function generateScores(list) {
+  list = cutStringList(list, 4);
+
+  scoreListText.setText(`
+    ${list[0].id} ${list[0].name}....${list[0].score}\n
+    ${list[1].id} ${list[1].name}....${list[1].score}\n
+    ${list[2].id} ${list[2].name}....${list[2].score}\n
+    ${list[3].id} ${list[3].name}....${list[3].score}\n
+    ${list[4].id} ${list[4].name}....${list[4].score}\n
+    `);
+}
+
+function checkBestScore(score, list) {
+  let isNewHighScore = false;
+  let i = 0;
+  let indexOfNewHighScore = null;
+
+  // TODO : améliorer l'algo pour quand le score est plus petit
+  if (score > 0) {
+    while (!isNewHighScore) {
+      if (score > +list[i].score) {
+        indexOfNewHighScore = list[i].id - 1;
+        isNewHighScore = true;
+      }
+      i++;
+    }
+    updateScores(indexOfNewHighScore, list);
+  }
+}
+
+function updateScores(id, list) {
+  list = cutStringList(list, 4);
+
+  list[id].name = "aaaa";
+  list[id].score = "000000";
+
+  scoreListText.setText(`
+    ${list[0].id} ${list[0].name}....${list[0].score}\n
+    ${list[1].id} ${list[1].name}....${list[1].score}\n
+    ${list[2].id} ${list[2].name}....${list[2].score}\n
+    ${list[3].id} ${list[3].name}....${list[3].score}\n
+    ${list[4].id} ${list[4].name}....${list[4].score}\n
+    `);
+}
