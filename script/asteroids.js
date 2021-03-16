@@ -57,6 +57,8 @@ var comboMultiplier = 1;
 
 // Classements
 var scoreListText;
+var scoreListRectangle;
+var scoreListRectangleY;
 
 // Pour les tirs
 var bullet;
@@ -356,6 +358,19 @@ function create() {
       24
     )
     .setOrigin(0.6, 0.5);
+
+  scoreListRectangleY =
+    this.cameras.main.worldView.y + this.cameras.main.height / 2 - 10;
+
+  scoreListRectangle = this.add.rectangle(
+    this.cameras.main.worldView.x + this.cameras.main.width / 2,
+    scoreListRectangleY,
+    500,
+    40,
+    0x000000
+  );
+  scoreListRectangle.visible = false;
+  scoreListRectangle.active = false;
 
   comboStatusText = this.add.bitmapText(10, 45, "pixelFont", "", 16);
   blinkTextFunction(comboStatusText, 200);
@@ -825,6 +840,7 @@ function endGame() {
   // - Affiché directement dans le jeu, on fera le select au lancement
   // - Bdd mySql, (utiliser php ? node ?)
   if (isScoreListAvaible) {
+    scoreListRectangle.active = true;
     checkBestScore(score, scoreList);
     generateScores(scoreList);
   }
@@ -836,6 +852,8 @@ function endGame() {
 function resetGameBegin() {
   readyToReset = false;
   shipIsDead = false;
+  scoreListRectangle.active = false;
+  scoreListRectangle.visible = false;
   scoreListText.setText("");
   endText.setText("");
   endTextScore.setText("");
@@ -1062,9 +1080,13 @@ function checkBestScore(score, list) {
 
 function updateScores(id, list) {
   list = cutStringList(list, 4);
+  scoreListRectangle.y = scoreListRectangleY + 45 * id - 1;
+  blinkHighScoreRectangle(600);
+
+  let scoreFormated = zeroPad(score, 6);
 
   list[id].name = "aaaa";
-  list[id].score = "000000";
+  list[id].score = scoreFormated;
 
   scoreListText.setText(`
     ${list[0].id} ${list[0].name}....${list[0].score}\n
@@ -1073,4 +1095,18 @@ function updateScores(id, list) {
     ${list[3].id} ${list[3].name}....${list[3].score}\n
     ${list[4].id} ${list[4].name}....${list[4].score}\n
     `);
+}
+
+function blinkHighScoreRectangle(delay, blinker = true) {
+  blinker = !blinker;
+  scoreListRectangle.visible = blinker;
+
+  if (scoreListRectangle.active) {
+    setTimeout(() => {
+      blinkHighScoreRectangle(delay, blinker);
+    }, delay);
+  } else {
+    blinker = true;
+    scoreListRectangle.visible = false;
+  }
 }
