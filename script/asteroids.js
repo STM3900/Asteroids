@@ -52,13 +52,18 @@ var startText;
 var initiateGame = false;
 
 // Score
-var score = 0;
+var score = 1001;
 var comboMultiplier = 1;
 
 // Classements
 var scoreListText;
 var scoreListRectangle;
 var scoreListRectangleY;
+var readyToType = false;
+var readyToSubmit = false;
+var readyToSend = false;
+var scoreName = "";
+var highScoreId = null;
 
 // Pour les tirs
 var bullet;
@@ -313,7 +318,7 @@ function create() {
   endTextReturn = this.add
     .bitmapText(
       this.cameras.main.worldView.x + this.cameras.main.width / 2,
-      this.cameras.main.worldView.y + this.cameras.main.height / 2 + 240,
+      this.cameras.main.worldView.y + this.cameras.main.height / 2 + 280,
       "pixelFont",
       "",
       10
@@ -348,6 +353,16 @@ function create() {
     .setOrigin(0.5);
   superComboText.visible = false;
   superComboText.alpha = 0.5;
+
+  scoreListEnter = this.add
+    .bitmapText(
+      this.cameras.main.worldView.x + this.cameras.main.width / 2,
+      this.cameras.main.worldView.y + this.cameras.main.height / 2 + 240,
+      "pixelFont",
+      "",
+      16
+    )
+    .setOrigin(0.5);
 
   scoreListText = this.add
     .bitmapText(
@@ -542,7 +557,7 @@ function update() {
   this.physics.world.wrap(bulletGroup, 25);
   if (asteroidWrap) this.physics.world.wrap(asteroidsGroup, 50);
 
-  if (keyR.isDown && readyToReset) {
+  if (keyR.isDown && readyToReset && (readyToSend || !highScoreId)) {
     console.log("Reset !");
     resetGameBegin();
   }
@@ -844,9 +859,12 @@ function endGame() {
     checkBestScore(score, scoreList);
     generateScores(scoreList);
   }
+
+  if (!highScoreId) {
+    endTextReturn.setText("PRESS R TO RESTART");
+    blinkTextFunction(endTextReturn, 600);
+  }
   endTextScore.setText(`SCORE:${scoreFormated}`);
-  endTextReturn.setText("PRESS R TO RESTART");
-  blinkTextFunction(endTextReturn, 600);
 }
 
 function resetGameBegin() {
@@ -854,9 +872,14 @@ function resetGameBegin() {
   shipIsDead = false;
   scoreListRectangle.active = false;
   scoreListRectangle.visible = false;
+
+  readyToSend = false;
+  scoreName = "";
+
   scoreListText.setText("");
   endText.setText("");
   endTextScore.setText("");
+  scoreListEnter.setText("");
   endTextReturn.setText("");
   let size = asteroidsGroup.children.size;
   let i = 0;
@@ -1067,26 +1090,43 @@ function checkBestScore(score, list) {
 
   // TODO : améliorer l'algo pour quand le score est plus petit
   if (score > 0) {
-    while (!isNewHighScore) {
+    while (!isNewHighScore && i < 5) {
       if (score > +list[i].score) {
         indexOfNewHighScore = list[i].id - 1;
+        highScoreId = indexOfNewHighScore;
         isNewHighScore = true;
       }
       i++;
     }
-    updateScores(indexOfNewHighScore, list);
+    if (isNewHighScore) {
+      updateScores(list);
+    }
   }
 }
 
-function updateScores(id, list) {
+function updateScores(list) {
+  readyToType = true;
   list = cutStringList(list, 4);
-  scoreListRectangle.y = scoreListRectangleY + 45 * id - 1;
+  scoreListRectangle.y = scoreListRectangleY + 45 * highScoreId - 1;
   blinkHighScoreRectangle(600);
 
-  let scoreFormated = zeroPad(score, 6);
+  updateScoreDisplay(list);
+}
 
-  list[id].name = "aaaa";
-  list[id].score = scoreFormated;
+function updateScoreDisplay(list) {
+  let scoreFormated = zeroPad(score, 6);
+  let scoreNameDisplay = scoreName;
+
+  if (scoreName == "") {
+    scoreNameDisplay = "____";
+  } else {
+    for (let i = 0; i < 4 - scoreName.length; i++) {
+      scoreNameDisplay += "_";
+    }
+  }
+
+  list[highScoreId].score = scoreFormated;
+  list[highScoreId].name = scoreNameDisplay;
 
   scoreListText.setText(`
     ${list[0].id} ${list[0].name}....${list[0].score}\n
@@ -1099,7 +1139,8 @@ function updateScores(id, list) {
 
 function blinkHighScoreRectangle(delay, blinker = true) {
   blinker = !blinker;
-  scoreListRectangle.visible = blinker;
+  scoreListRectangle.visible = true;
+  scoreListRectangle.alpha = blinker ? 0 : 0.6;
 
   if (scoreListRectangle.active) {
     setTimeout(() => {
@@ -1108,5 +1149,51 @@ function blinkHighScoreRectangle(delay, blinker = true) {
   } else {
     blinker = true;
     scoreListRectangle.visible = false;
+    scoreListRectangle.alpha = 0.3;
   }
+}
+
+// fonction de keypress
+document.addEventListener("keydown", (event) => {
+  if (readyToType) {
+    const keyCode = event.code;
+
+    //! Problème avec la touche m (azerty / qwerty)
+    if (keyCode.includes("Key") && scoreName.length < 4) {
+      const keyName = event.key;
+      scoreName += keyName.toUpperCase();
+      if (scoreName.length >= 4) {
+        readyToSubmit = true;
+        scoreListEnter.setText("PRESS ENTER TO SUBMIT");
+      } else {
+        readyToSubmit = false;
+        scoreListEnter.setText("");
+      }
+
+      updateScoreDisplay(scoreList);
+    } else if (keyCode == "Backspace" && scoreName.length > 0) {
+      scoreName = scoreName.slice(0, -1);
+      readyToSubmit = false;
+      scoreListEnter.setText("");
+      updateScoreDisplay(scoreList);
+    } else if (keyCode == "Enter" && readyToSubmit) {
+      sendScore();
+    }
+  }
+});
+
+function sendScore() {
+  readyToType = false;
+  readyToSubmit = false;
+  readyToSend = true;
+
+  // bip bip c'est la query
+  // TODO : Bah faire la requête du coup
+  const queryName = scoreName;
+  const queryScore = zeroPad(score, 6);
+  console.log("Score sent !");
+
+  scoreListEnter.setText("SCORE SAVED");
+  endTextReturn.setText("PRESS R TO RESTART");
+  blinkTextFunction(endTextReturn, 600);
 }
