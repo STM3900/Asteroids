@@ -1,5 +1,6 @@
 import fastify from "fastify";
 import mariadb from "mariadb";
+import fastifycors from "fastify-cors";
 
 const name = "Mino";
 const score = -150;
@@ -14,6 +15,10 @@ const pool = mariadb.createPool({
 
 async function start() {
   const app = fastify();
+  app.register(fastifycors, {
+    origin: true,
+  });
+
   let conn = await pool.getConnection();
 
   app.get("/scores", async (request, response) => {
