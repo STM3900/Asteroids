@@ -2,9 +2,6 @@ import fastify from "fastify";
 import mariadb from "mariadb";
 import fastifycors from "fastify-cors";
 
-const name = "Mino";
-const score = -150;
-
 const pool = mariadb.createPool({
   host: "localhost",
   user: "root",
@@ -28,8 +25,19 @@ async function start() {
   });
 
   app.post("/scores", async (request, response) => {
+    const data = JSON.parse(request.body);
+    console.log(data);
+
     const res = await conn.query(
-      `INSERT INTO scoresList (name, score) VALUES ('${name}', ${score})`
+      `INSERT INTO scoreslist (id, name, score)
+      VALUES (1, '${data[0].name}', '${data[0].score}'),
+      (2, '${data[1].name}', '${data[1].score}'),
+      (3, '${data[2].name}', '${data[2].score}'),
+      (4, '${data[3].name}', '${data[3].score}'),
+      (5, '${data[4].name}', '${data[4].score}')
+      ON DUPLICATE KEY UPDATE id=VALUES(id),
+      name=VALUES(name),
+      score=VALUES(score);`
     );
     response.send(res);
     conn.release();

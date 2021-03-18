@@ -8,16 +8,7 @@
 let scoreList = [];
 let isScoreListAvaible = false;
 
-fetch("http://127.0.0.1:3000/scores")
-  .then((response) => response.json())
-  .then(
-    (response) => (
-      (scoreList = response),
-      (isScoreListAvaible = true),
-      console.log(scoreList, isScoreListAvaible)
-    )
-  )
-  .catch((error) => console.error("Erreur : " + error));
+getScoreList();
 
 var config = {
   parent: "asteroids", // Affiche le jeu dans le div id="asteroids"
@@ -857,7 +848,6 @@ function endGame() {
   if (isScoreListAvaible) {
     scoreListRectangle.active = true;
     checkBestScore(score, scoreList);
-    generateScores(scoreList);
   }
 
   if (!highScoreId) {
@@ -868,6 +858,8 @@ function endGame() {
 }
 
 function resetGameBegin() {
+  getScoreList();
+
   readyToReset = false;
   shipIsDead = false;
   scoreListRectangle.active = false;
@@ -1098,22 +1090,22 @@ function checkBestScore(score, list) {
       }
       i++;
     }
-    if (isNewHighScore) {
-      updateScores(list);
-    }
+    isNewHighScore ? updateScores() : generateScores(list);
   }
 }
 
-function updateScores(list) {
+function updateScores() {
   readyToType = true;
-  list = cutStringList(list, 4);
+  scoreList = cutStringList(scoreList, 4);
   scoreListRectangle.y = scoreListRectangleY + 45 * highScoreId - 1;
   blinkHighScoreRectangle(600);
 
-  updateScoreDisplay(list);
+  updateScoreDisplay();
 }
 
-function updateScoreDisplay(list) {
+let temp = true;
+
+function updateScoreDisplay() {
   let scoreFormated = zeroPad(score, 6);
   let scoreNameDisplay = scoreName;
 
@@ -1125,15 +1117,49 @@ function updateScoreDisplay(list) {
     }
   }
 
-  list[highScoreId].score = scoreFormated;
-  list[highScoreId].name = scoreNameDisplay;
+  if (temp) {
+    temp = false;
+    let newScoreList = [];
+
+    for (let i = 0; i < highScoreId; i++) {
+      newScoreList.push({
+        id: scoreList[i].id,
+        name: scoreList[i].name,
+        score: scoreList[i].score,
+      });
+    }
+
+    newScoreList.push({
+      id: highScoreId - 1,
+      name: scoreNameDisplay,
+      score: scoreFormated,
+    });
+
+    for (let i = highScoreId; i < 5; i++) {
+      newScoreList.push({
+        id: scoreList[i].id,
+        name: scoreList[i].name,
+        score: scoreList[i].score,
+      });
+    }
+
+    newScoreList = newScoreList.slice(0, 5);
+    scoreList = newScoreList;
+  } else {
+    scoreList[highScoreId].score = scoreFormated;
+    scoreList[highScoreId].name = scoreNameDisplay;
+  }
+
+  for (i = 1; i < 6; i++) {
+    scoreList[i - 1].id = i;
+  }
 
   scoreListText.setText(`
-    ${list[0].id} ${list[0].name}....${list[0].score}\n
-    ${list[1].id} ${list[1].name}....${list[1].score}\n
-    ${list[2].id} ${list[2].name}....${list[2].score}\n
-    ${list[3].id} ${list[3].name}....${list[3].score}\n
-    ${list[4].id} ${list[4].name}....${list[4].score}\n
+    ${scoreList[0].id} ${scoreList[0].name}....${scoreList[0].score}\n
+    ${scoreList[1].id} ${scoreList[1].name}....${scoreList[1].score}\n
+    ${scoreList[2].id} ${scoreList[2].name}....${scoreList[2].score}\n
+    ${scoreList[3].id} ${scoreList[3].name}....${scoreList[3].score}\n
+    ${scoreList[4].id} ${scoreList[4].name}....${scoreList[4].score}\n
     `);
 }
 
@@ -1158,7 +1184,6 @@ document.addEventListener("keydown", (event) => {
   if (readyToType) {
     const keyCode = event.code;
 
-    //! Problème avec la touche m (azerty / qwerty)
     if (checkGoodKey(event) && scoreName.length < 4) {
       const keyName = event.key;
       scoreName += keyName.toUpperCase();
@@ -1170,12 +1195,12 @@ document.addEventListener("keydown", (event) => {
         scoreListEnter.setText("");
       }
 
-      updateScoreDisplay(scoreList);
+      updateScoreDisplay();
     } else if (keyCode == "Backspace" && scoreName.length > 0) {
       scoreName = scoreName.slice(0, -1);
       readyToSubmit = false;
       scoreListEnter.setText("");
-      updateScoreDisplay(scoreList);
+      updateScoreDisplay();
     } else if (keyCode == "Enter" && readyToSubmit) {
       sendScore();
     }
@@ -1219,12 +1244,28 @@ function sendScore() {
   readyToSend = true;
 
   // bip bip c'est la query
-  // TODO : Bah faire la requête du coup
-  const queryName = scoreName;
-  const queryScore = zeroPad(score, 6);
-  console.log("Score sent !");
+  fetch("http://127.0.0.1:3000/scores", {
+    method: "POST",
+    body: JSON.stringify(scoreList),
+  })
+    .then(console.log("Score sent !"))
+    .catch((error) => console.error("Erreur : " + error));
 
+  console.log(scoreList);
   scoreListEnter.setText("SCORE SAVED");
   endTextReturn.setText("PRESS R TO RESTART");
   blinkTextFunction(endTextReturn, 600);
+}
+
+function getScoreList() {
+  fetch("http://127.0.0.1:3000/scores")
+    .then((response) => response.json())
+    .then(
+      (response) => (
+        (scoreList = response),
+        (isScoreListAvaible = true),
+        console.log(scoreList, isScoreListAvaible)
+      )
+    )
+    .catch((error) => console.error("Erreur : " + error));
 }
