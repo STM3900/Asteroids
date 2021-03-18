@@ -1159,7 +1159,7 @@ document.addEventListener("keydown", (event) => {
     const keyCode = event.code;
 
     //! Problème avec la touche m (azerty / qwerty)
-    if (keyCode.includes("Key") && scoreName.length < 4) {
+    if (checkGoodKey(event) && scoreName.length < 4) {
       const keyName = event.key;
       scoreName += keyName.toUpperCase();
       if (scoreName.length >= 4) {
@@ -1181,6 +1181,37 @@ document.addEventListener("keydown", (event) => {
     }
   }
 });
+
+function checkGoodKey(key) {
+  const keyCode = key.code;
+  const keyValue = key.key;
+
+  let value = false;
+  // azerty m qwerty m
+  if (
+    keyCode == "Semicolon" &&
+    keyValue == "m" &&
+    !(keyCode == "Semicolon" && keyValue == ";")
+  ) {
+    value = true;
+  }
+  // azerty , qwerty ,
+  else if (
+    !(keyCode == "KeyM" && keyValue == ",") &&
+    keyCode == "KeyM" &&
+    keyValue == "m"
+  ) {
+    value = true;
+  } else if (
+    keyCode.includes("Key") &&
+    !(keyCode == "KeyM" && keyValue == ",") &&
+    !(keyCode == "Semicolon" && keyValue == ";")
+  ) {
+    value = true;
+  }
+
+  return value;
+}
 
 function sendScore() {
   readyToType = false;
