@@ -839,12 +839,6 @@ function endGame() {
   readyToReset = true;
   let scoreFormated = zeroPad(score, 6);
   endText.setText("GAME OVER");
-  //TODO : Ajouter un système de classement de score
-  // - Stocké en bdd
-  // - Un nom, sans accent, de x lettres max (3 ? 4 ? + ?)
-  // - Il ne peut y avoir que 5 meilleurs scores
-  // - Affiché directement dans le jeu, on fera le select au lancement
-  // - Bdd mySql, (utiliser php ? node ?)
   if (isScoreListAvaible) {
     scoreListRectangle.active = true;
     checkBestScore(score, scoreList);
@@ -1091,6 +1085,8 @@ function checkBestScore(score, list) {
       i++;
     }
     isNewHighScore ? updateScores() : generateScores(list);
+  } else {
+    generateScores(list);
   }
 }
 
