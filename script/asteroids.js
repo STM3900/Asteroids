@@ -852,6 +852,10 @@ function endGame() {
   if (isScoreListAvaible) {
     scoreListRectangle.active = true;
     checkBestScore(score, scoreList);
+  } else {
+    endText.y += 140;
+    endTextScore.y += 140;
+    endTextReturn.y -= 160;
   }
 
   if (!highScoreId) {
@@ -880,6 +884,12 @@ function resetGameBegin() {
     endTextScore.y += 20;
   } else {
     endTextReturn.y += 40;
+  }
+
+  if (!isScoreListAvaible) {
+    endText.y -= 140;
+    endTextScore.y -= 140;
+    endTextReturn.y += 160;
   }
 
   highScoreId = 0;
