@@ -55,6 +55,7 @@ var readyToSubmit = false;
 var readyToSend = false;
 var scoreName = "";
 var highScoreId = null;
+var bestScore = null;
 
 // Pour les tirs
 var bullet;
@@ -344,6 +345,27 @@ function create() {
       16
     )
     .setOrigin(0.5);
+
+  bestScoreText = this.add
+    .bitmapText(
+      this.cameras.main.worldView.x + this.cameras.main.width / 2,
+      -25,
+      "pixelFont",
+      "",
+      24
+    )
+    .setOrigin(0.5);
+
+  bestScoreTextLabel = this.add
+    .bitmapText(
+      this.cameras.main.worldView.x + this.cameras.main.width / 2,
+      -60,
+      "pixelFont",
+      "",
+      24
+    )
+    .setOrigin(0.5);
+
   superComboText = this.add
     .bitmapText(
       this.cameras.main.worldView.x + this.cameras.main.width / 2,
@@ -563,8 +585,6 @@ function update() {
     resetGameBegin();
   }
 }
-
-getCurrentTime();
 
 function generateAsteroid(physics, number) {
   // config.width = 1440
@@ -943,12 +963,15 @@ function resetGameEnd(isInitiate = false) {
       repeat: 0,
       onComplete: function () {
         startText.setText("");
-        comboBarGroup.setVisible(true);
-        comboCheckpoint.setVisible(true);
-        asteroidWrap = true;
       },
       callbackScope: this,
     });
+
+    if (isScoreListAvaible) {
+      setTimeout(() => {
+        showBestScoreText();
+      }, 800);
+    }
   } else {
     text.setText("SCORE:000000");
     addLife(3);
@@ -966,7 +989,7 @@ function resetGameEnd(isInitiate = false) {
     targets: ship,
     y: config.height / 2,
     ease: isInitiate ? "Quad.easeInOut" : "Power1",
-    duration: 1500,
+    duration: isScoreListAvaible && isInitiate ? 2500 : 1500,
     repeat: 0,
     onComplete: function () {
       ship.body.velocity.y = 0;
@@ -977,6 +1000,9 @@ function resetGameEnd(isInitiate = false) {
       if (isInitiate) {
         text.setText("SCORE:000000");
         addLife(3);
+        comboBarGroup.setVisible(true);
+        comboCheckpoint.setVisible(true);
+        asteroidWrap = true;
       }
     },
     callbackScope: this,
@@ -1084,17 +1110,7 @@ function slideDown() {
 }
 
 //TODO : REVOIR COMMENT FAIRE LA DISPOSITION DE TEXTE AVEC UN TABLEAU ETOU
-function cutStringList(list, size) {
-  for (let i = 0; i < 5; i++) {
-    list[i].name = list[i].name.substring(0, size);
-  }
-
-  return list;
-}
-
 function generateScores(list) {
-  list = cutStringList(list, 4);
-
   scoreListText.setText(`
     ${list[0].id} ${list[0].name}....${list[0].score}\n
     ${list[1].id} ${list[1].name}....${list[1].score}\n
@@ -1127,7 +1143,6 @@ function checkBestScore(score, list) {
 
 function updateScores() {
   readyToType = true;
-  scoreList = cutStringList(scoreList, 4);
   scoreListRectangle.y = scoreListRectangleY + 45 * highScoreId - 1;
   blinkHighScoreRectangle(600);
 
@@ -1295,11 +1310,61 @@ function getScoreList() {
       (response) => (
         (scoreList = response),
         (isScoreListAvaible = true),
-        console.log(scoreList, isScoreListAvaible)
+        (bestScore = scoreList[0]),
+        console.log(scoreList)
       )
     )
     .catch(
       (error) => console.error("Erreur : " + error),
-      (isScoreListAvaible = false)
+      (isScoreListAvaible = false),
+      (bestScore = null)
     );
 }
+
+function showBestScoreText() {
+  bestScoreTextLabel.setText("High score");
+  bestScoreText.setText(`${bestScore.name} - ${bestScore.score}`);
+
+  const bestScoreTextLabelY = bestScoreTextLabel.y;
+  const bestScoreTextY = bestScoreText.y;
+
+  var tween = this.GLOBAL_Tween.add({
+    targets: bestScoreTextLabel,
+    y: 450 + bestScoreTextLabelY,
+    ease: "Quad.easeOut",
+    duration: 1000,
+    repeat: 0,
+    onComplete: function () {
+      showBestScoreTextTween(bestScoreTextLabel, bestScoreTextLabelY);
+    },
+    callbackScope: this,
+  });
+
+  var tween = this.GLOBAL_Tween.add({
+    targets: bestScoreText,
+    y: 450 + bestScoreTextY,
+    ease: "Quad.easeOut",
+    duration: 1000,
+    repeat: 0,
+    onComplete: function () {
+      showBestScoreTextTween(bestScoreText, bestScoreTextY);
+    },
+    callbackScope: this,
+  });
+}
+
+function showBestScoreTextTween(target, y) {
+  var tween = this.GLOBAL_Tween.add({
+    targets: target,
+    y: 1000 + y,
+    ease: "Quad.easeIn",
+    duration: 1000,
+    repeat: 0,
+    onComplete: function () {
+      bestScoreText.setText("");
+    },
+    callbackScope: this,
+  });
+}
+
+getCurrentTime();
