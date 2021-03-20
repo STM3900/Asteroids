@@ -43,7 +43,7 @@ var startText;
 var initiateGame = false;
 
 // Score
-var score = 1001;
+var score = 0;
 var comboMultiplier = 1;
 
 // Classements
@@ -297,6 +297,17 @@ function create() {
       32
     )
     .setOrigin(0.5);
+
+  highScoreText = this.add
+    .bitmapText(
+      this.cameras.main.worldView.x + this.cameras.main.width / 2,
+      this.cameras.main.worldView.y + this.cameras.main.height / 2 - 75,
+      "pixelFont",
+      "",
+      16
+    )
+    .setOrigin(0.5);
+
   endTextScore = this.add
     .bitmapText(
       this.cameras.main.worldView.x + this.cameras.main.width / 2,
@@ -379,7 +390,6 @@ function create() {
   scoreListRectangle.active = false;
 
   comboStatusText = this.add.bitmapText(10, 45, "pixelFont", "", 16);
-  blinkTextFunction(comboStatusText, 200);
   // Création des groupes de sprite
   asteroidsGroup = this.physics.add.group();
   bulletGroup = this.physics.add.group();
@@ -847,6 +857,12 @@ function endGame() {
   if (!highScoreId) {
     endTextReturn.setText("PRESS R TO RESTART");
     blinkTextFunction(endTextReturn, 600);
+    endTextReturn.y -= 40;
+  } else {
+    endText.y -= 20;
+    endTextScore.y -= 20;
+    highScoreText.setText("New high score");
+    blinkTextFunction(highScoreText, 600, true);
   }
   endTextScore.setText(`SCORE:${scoreFormated}`);
 }
@@ -859,12 +875,21 @@ function resetGameBegin() {
   scoreListRectangle.active = false;
   scoreListRectangle.visible = false;
 
+  if (highScoreId) {
+    endText.y += 20;
+    endTextScore.y += 20;
+  } else {
+    endTextReturn.y += 40;
+  }
+
+  highScoreId = 0;
   readyToSend = false;
   scoreName = "";
 
   scoreListText.setText("");
   endText.setText("");
   endTextScore.setText("");
+  highScoreText.setText("");
   scoreListEnter.setText("");
   endTextReturn.setText("");
   let size = asteroidsGroup.children.size;
@@ -1263,5 +1288,8 @@ function getScoreList() {
         console.log(scoreList, isScoreListAvaible)
       )
     )
-    .catch((error) => console.error("Erreur : " + error));
+    .catch(
+      (error) => console.error("Erreur : " + error),
+      (isScoreListAvaible = false)
+    );
 }
