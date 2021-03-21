@@ -5,11 +5,16 @@
 // - Amélioration de l'affichage
 // - Amélioration du gameplay etou
 
+// Initialisation du classement pour faire la requete
 let scoreList = [];
 let isScoreListAvaible = false;
 
+// Initialise les valeurs de scoreList en fonction de si l'api fonctionne ou non
 getScoreList();
 
+/**
+ * Initialisation des variables et du jeu
+ */
 var config = {
   parent: "asteroids", // Affiche le jeu dans le div id="asteroids"
   width: 1440,
@@ -28,7 +33,9 @@ var config = {
     update: update, // Fonction appelée 60 fois par seconde
   },
 };
-// Variables globales
+/**
+ * Variables globales
+ */
 // SELECTEUR HTML
 const HTML_body = document.querySelector("*");
 
@@ -100,9 +107,20 @@ var shotSound2;
 var shotSound3;
 var machineGun;
 
+var typing1;
+var typing2;
+var typing3;
+var cancel;
+var resetAsteroid;
+var resetAsteroidPitch = 0;
+
+var scoreSent;
+var startShip;
+
 // Tableau de musique (pour appeler des sons différents aléatoirement)
 explosionTab = [];
 shotTab = [];
+typingTab = [];
 
 // Autre
 var readyToReset = false;
@@ -186,6 +204,16 @@ function preload() {
   this.load.audio("comboSound", "sound/combo/combo1.wav");
   this.load.audio("comboBreak", "sound/combo/comboBreak.wav");
   this.load.audio("superCombo", "sound/combo/supercombo.wav");
+
+  // Score et autres
+  this.load.audio("typing1", "sound/ui/typing/typing1.wav");
+  this.load.audio("typing2", "sound/ui/typing/typing2.wav");
+  this.load.audio("typing3", "sound/ui/typing/typing3.wav");
+
+  this.load.audio("cancel", "sound/ui/typing/cancel.wav");
+  this.load.audio("resetAsteroid", "sound/ui/resetAsteroid.wav");
+  this.load.audio("scoreSent", "sound/ui/scoreSent.wav");
+  this.load.audio("startShip", "sound/ui/startShip.wav");
 }
 function create() {
   // Ici on vas initialiser les variables, l'affichage ...
@@ -220,9 +248,32 @@ function create() {
     rate: 0.1,
   });
 
+  typing1 = this.sound.add("typing1", { volume: 0.3 });
+  typing2 = this.sound.add("typing2", { volume: 0.3 });
+  typing3 = this.sound.add("typing3", { volume: 0.3 });
+
+  cancel = this.sound.add("cancel", { volume: 0.2 });
+  resetAsteroid = this.sound.add("resetAsteroid", {
+    volume: 0.4,
+    detune: -400,
+  });
+
+  scoreSent = this.sound.add("scoreSent", {
+    volume: 0.3,
+    detune: -600,
+    rate: 1.4,
+  });
+
+  startShip = this.sound.add("startShip", {
+    volume: 0.4,
+    rate: 0.4,
+    detune: 1000,
+  });
+
   // Pour les tableaux de son
   explosionTab.push(explosionSound1, explosionSound2, explosionSound3);
   shotTab.push(shotSound1, shotSound2, shotSound3);
+  typingTab.push(typing1, typing2, typing3);
 
   // Initialisation des sprites
   ship = this.physics.add.sprite(400, 300, "ship").setImmovable(true);
@@ -675,7 +726,6 @@ function killAsteroid(projectile, asteroid) {
 
   if (!superShot) {
     comboSound.play();
-    console.log(comboSound.detune);
     comboSound.detune += 200;
     smallCombo++;
     if (superComboText.visible) {
@@ -684,7 +734,6 @@ function killAsteroid(projectile, asteroid) {
       console.log(superComboText.fontData.size);
     }
   }
-  console.log(smallCombo);
   if (smallCombo == 5) {
     checkpoint = true;
   }
@@ -892,12 +941,11 @@ function endGame() {
 }
 
 function resetGameBegin() {
-  getScoreList();
-
   readyToReset = false;
   shipIsDead = false;
   scoreListRectangle.active = false;
   scoreListRectangle.visible = false;
+  temp = true;
 
   if (highScoreId) {
     endText.y += 20;
@@ -912,6 +960,7 @@ function resetGameBegin() {
     endTextReturn.y += 160;
   }
 
+  getScoreList();
   highScoreId = 0;
   readyToSend = false;
   scoreName = "";
@@ -929,6 +978,9 @@ function resetGameBegin() {
 
 function cleanAsteroids(i, size, delay) {
   setTimeout(() => {
+    resetAsteroid.play();
+    resetAsteroidPitch += 100;
+    resetAsteroid.detune = resetAsteroidPitch;
     asteroidsGroup.getChildren()[0].destroy();
     i++;
     i == size ? resetGameEnd() : cleanAsteroids(i, size, delay);
@@ -940,6 +992,7 @@ function resetGameEnd(isInitiate = false) {
   activateSuperShot = false;
   numberOfAsteroids = 4;
   score = 0;
+  resetAsteroidPitch = 0;
 
   if (isInitiate) {
     asteroidWrap = false;
@@ -982,8 +1035,11 @@ function resetGameEnd(isInitiate = false) {
   let x = config.width / 2;
   let y = config.height + 20;
   ship.enableBody(true, x, y, true, true);
-
   ship.alpha = 0.5;
+
+  setTimeout(() => {
+    startShip.play();
+  }, 100);
 
   var tween = this.GLOBAL_Tween.add({
     targets: ship,
@@ -1189,7 +1245,9 @@ function updateScoreDisplay() {
       });
     }
 
+    console.log(newScoreList);
     newScoreList = newScoreList.slice(0, 5);
+    console.log(newScoreList);
     scoreList = newScoreList;
   } else {
     scoreList[highScoreId].score = scoreFormated;
@@ -1231,6 +1289,7 @@ document.addEventListener("keydown", (event) => {
     const keyCode = event.code;
 
     if (checkGoodKey(event) && scoreName.length < 4) {
+      typingTab[getRandomInt(3)].play();
       const keyName = event.key;
       scoreName += keyName.toUpperCase();
       if (scoreName.length >= 4) {
@@ -1243,6 +1302,7 @@ document.addEventListener("keydown", (event) => {
 
       updateScoreDisplay();
     } else if (keyCode == "Backspace" && scoreName.length > 0) {
+      cancel.play();
       scoreName = scoreName.slice(0, -1);
       readyToSubmit = false;
       scoreListEnter.setText("");
@@ -1298,6 +1358,7 @@ function sendScore() {
     .catch((error) => console.error("Erreur : " + error));
 
   console.log(scoreList);
+  scoreSent.play();
   scoreListEnter.setText("SCORE SAVED");
   endTextReturn.setText("PRESS R TO RESTART");
   blinkTextFunction(endTextReturn, 600);
