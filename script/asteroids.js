@@ -94,7 +94,7 @@ var speedRate = 1100; // Vitesse de lecture de la musique (moins elle est élev�
 var ifActive = true; // Si la musique est active, oupa
 
 // Les sons
-var thrustSound; // Le bruit du moteur du vaiseau
+var thrustSound; // Le son du moteur du vaiseau
 var dieSound; // Quand le vaiseau meurt (nullos)
 var shipIsDead = false; // Permet de savoir si le vaiseau est mort
 
@@ -108,7 +108,7 @@ var shotSound1;
 var shotSound2;
 var shotSound3;
 
-// Bruit du tir du SuperTir (C'est une gatling en fait)
+// Son du tir du SuperTir (C'est une gatling en fait)
 var machineGun;
 
 // Les 3 sons différents pour la saisie du clavier
@@ -117,15 +117,15 @@ var typing2;
 var typing3;
 
 var cancel; // Son quand on cancel la saisie (quand on appuie sur backspace)
-var resetAsteroid; // Bruit quand l'asteroide est reset
+var resetAsteroid; // Son quand l'asteroide est reset
 var resetAsteroidPitch = 0; // Le pitch de resetAsteroid
 
-var scoreSent; // Bruit quand le score est envoyé
-var startShip; // Bruit quand le vaiseau arrive sur le board
+var scoreSent; // Son quand le score est envoyé
+var startShip; // Son quand le vaiseau arrive sur le board
 
-var comboSound; // Bruit du combo
+var comboSound; // Son du combo
 var comboEnd; // Son joué quand on perd le combo
-var superCombo; // Bruit du SuperCombo
+var superCombo; // Son du SuperCombo
 
 // Tableau de musique (pour appeler des sons différents aléatoirement)
 explosionTab = [];
@@ -158,11 +158,12 @@ var superShot = false; // Indique si le SuperTir est actif
 var superComboText = ""; // Affiche le combo du SuperCombo
 var comboStatusText = ""; // Affiche le multiplicateur du combo (vide, 1.5, 2)
 
-// Initialisation de phaser
+/**
+ * Initialisation de phaser
+ */
 var game = new Phaser.Game(config);
 function preload() {
   // C'est là qu'on vas charger les images et les sons
-
   this.load.image("bullet", "img/sprite/bullet.png"); // Tir
   this.load.spritesheet("ship", "img/sprite/ship_animation.png", {
     // Vaisseau
@@ -227,18 +228,21 @@ function create() {
   beat1 = this.sound.add("beat1", { volume: 0.5 });
   beat2 = this.sound.add("beat2", { volume: 0.5 });
 
-  thrustSound = this.sound.add("thrust", { volume: 0.3 });
-  dieSound = this.sound.add("die", { volume: 0.3 });
+  thrustSound = this.sound.add("thrust", { volume: 0.3 }); // Son du propulseur
+  dieSound = this.sound.add("die", { volume: 0.3 }); // Son de mort
 
+  // Son des explosions
   explosionSound1 = this.sound.add("explosion1", { volume: 0.1 });
   explosionSound2 = this.sound.add("explosion2", { volume: 0.1 });
   explosionSound3 = this.sound.add("explosion3", { volume: 0.1 });
 
+  // Son des tirs
   shotSound1 = this.sound.add("shot1", { volume: 0.2, detune: -100 });
   shotSound2 = this.sound.add("shot2", { volume: 0.2, detune: -100 });
   shotSound3 = this.sound.add("shot3", { volume: 0.2, detune: -100 });
   machineGun = this.sound.add("machineGun", { volume: 0.8 });
 
+  // Sons des combos
   comboSound = this.sound.add("comboSound", { volume: 0.3, detune: -200 });
   comboEnd = this.sound.add("comboBreak", {
     volume: 0.3,
@@ -251,11 +255,15 @@ function create() {
     rate: 0.1,
   });
 
+  // Son de saisie
   typing1 = this.sound.add("typing1", { volume: 0.3 });
   typing2 = this.sound.add("typing2", { volume: 0.3 });
   typing3 = this.sound.add("typing3", { volume: 0.3 });
 
+  // Son d'annulation
   cancel = this.sound.add("cancel", { volume: 0.2 });
+
+  // Sons pour le reset de la partie
   resetAsteroid = this.sound.add("resetAsteroid", {
     volume: 0.4,
     detune: -400,
@@ -282,8 +290,10 @@ function create() {
   ship = this.physics.add.sprite(400, 300, "ship").setImmovable(true);
   ship.setSize(25, 22.5, true);
   shipHp = this.physics.add.sprite(400, 300, "ship");
+
   bullet = this.physics.add.sprite(13, 37, "bullet");
   asteroid = this.physics.add.sprite(600, 600, "asteroid");
+
   comboBar = this.physics.add.sprite(400, 300, "comboMetter");
   comboCheckpoint = this.physics.add.sprite(
     config.width / 2,
@@ -294,6 +304,7 @@ function create() {
   comboCheckpoint.setScale(1.5);
   comboCheckpoint.alpha = 0.4;
 
+  // On détruit les sprites que l'ont utilise pas (sert pour les groupes)
   shipHp.destroy();
   bullet.destroy();
   asteroid.destroy();
@@ -372,6 +383,7 @@ function create() {
       32
     )
     .setOrigin(0.5);
+
   endTextReturn = this.add
     .bitmapText(
       this.cameras.main.worldView.x + this.cameras.main.width / 2,
@@ -381,6 +393,7 @@ function create() {
       10
     )
     .setOrigin(0.5);
+
   titleText = this.add
     .bitmapText(
       this.cameras.main.worldView.x + this.cameras.main.width / 2,
@@ -390,6 +403,7 @@ function create() {
       48
     )
     .setOrigin(0.5);
+
   startText = this.add
     .bitmapText(
       this.cameras.main.worldView.x + this.cameras.main.width / 2,
@@ -466,6 +480,7 @@ function create() {
   scoreListRectangle.active = false;
 
   comboStatusText = this.add.bitmapText(10, 45, "pixelFont", "", 16);
+
   // Création des groupes de sprite
   asteroidsGroup = this.physics.add.group();
   bulletGroup = this.physics.add.group();
@@ -640,13 +655,23 @@ function update() {
   }
 }
 
+/**
+ *
+ * @param {Le moteur physique} physics
+ * @param {Le nombre d'astéroides à créer} number
+ */
 function generateAsteroid(physics, number) {
-  // config.width = 1440
-  // config.height = 810
+  // Accélère la musique si celle-ci n'est pas déjà à son maximum
   if (speedRate > 200) {
     speedRate -= 100;
   }
+
   let iterator = 0;
+
+  /**
+   * Le tableau des différentes positions possibles
+   * Les asteroides, ne peuvent spawner que dans les coins du bord (évite de se faire instant kill)
+   */
   let posArray = [
     {
       x: 0 + getRandomInt(100),
@@ -667,21 +692,24 @@ function generateAsteroid(physics, number) {
   ];
 
   for (let i = 0; i < number; i++) {
+    // Permet de "tourner en rond" sur le spawn des astéroides
     if (iterator > 3) {
       iterator = 0;
     }
 
+    // On crée un astéroide, avec une position sur un coin
     var currentAsteroid = asteroidsGroup.create(
       posArray[iterator].x,
       posArray[iterator].y,
       "asteroid"
     );
 
+    // On lui donne un angle aléatoire, qui défininra sa trajectoire (en ligne droite)
     currentAsteroid.angle = getRandomInt(360);
     let rad = Phaser.Math.DegToRad(currentAsteroid.angle);
     physics.velocityFromRotation(
       rad,
-      100 + getRandomInt(100),
+      100 + getRandomInt(100), // La vitesse est aussi en partie aléatoire
       currentAsteroid.body.velocity
     );
     currentAsteroid.setScale(1.5);
@@ -690,25 +718,37 @@ function generateAsteroid(physics, number) {
   }
 }
 
-function generateAsteroid2(physics, asteroid, scale) {
+/**
+ *
+ * @param {Le moteur physique} physics
+ * @param {L'asteroide} asteroid
+ * @param {La taille de celui-ci (permet de calculer sa vitesse)} scale
+ */
+function generateSmallerAsteroid(physics, asteroid, scale) {
   for (let i = 0; i < 2; i++) {
+    // On crée deux astéroides à la position de celui qu'on vient de toz
     var currentAsteroid2 = asteroidsGroup.create(
       asteroid.x,
       asteroid.y,
       "asteroid"
     );
 
+    // On lui règle la bonne taille
     currentAsteroid2.setScale(scale);
     currentAsteroid2.angle = getRandomInt(360);
     let rad = Phaser.Math.DegToRad(currentAsteroid2.angle);
     physics.velocityFromRotation(
       rad,
-      200 + getRandomInt(50) + (scale == 0.5 ? getRandomInt(100) : 0),
+      200 + getRandomInt(50) + (scale == 0.5 ? getRandomInt(100) : 0), // La vitesse de l'astéroide sera plus rapide si il est plus petit !
       currentAsteroid2.body.velocity
     );
   }
 }
 
+/**
+ *
+ * @returns Renvoit le timestamp actuel
+ */
 function getCurrentTime() {
   let time = Date.now();
   return time;
@@ -766,10 +806,10 @@ function killAsteroid(projectile, asteroid) {
 
   explosionTab[getRandomInt(3)].play();
   if (asteroid.scale == 1.5) {
-    generateAsteroid2(this.physics, asteroid, 1);
+    generateSmallerAsteroid(this.physics, asteroid, 1);
     dot.setScale(1.5);
   } else if (asteroid.scale == 1) {
-    generateAsteroid2(this.physics, asteroid, 0.5);
+    generateSmallerAsteroid(this.physics, asteroid, 0.5);
     dot.setScale(1.2);
   }
 
