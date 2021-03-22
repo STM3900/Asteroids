@@ -39,83 +39,93 @@ var config = {
 // SELECTEUR HTML
 const HTML_body = document.querySelector("*");
 
-// Pour le texte
-var scoreText;
-var endText;
-var endTextScore;
-var endTextReturn;
+// Texte
+var scoreText; // Le score qui sera affiché à l'écran
+var endText; // Texte de fin, affiche "GAME OVER"
+var endTextScore; // Score affiché sur l'écran de fin
+var endTextReturn; // Texte affiché sur l'écran de fin, affiche "Press r to restart"
 
-var titleText;
-var startText;
-var initiateGame = false;
+var titleText; // Le titre du jeu, affiché sur l'écran titre (logique)
+var startText; // Texte affiché sur l'écran titre : "press space to start"
+var initiateGame = false; // Variable indiquant si la game est initialisé (quand on appuie sur espace)
 
 // Score
-var score = 0;
-var comboMultiplier = 1;
+var score = 0; // Le score du joueur
+var comboMultiplier = 1; // Le multiplicateur du combo
 
 // Classements
-var scoreListText;
-var scoreListRectangle;
-var scoreListRectangleY;
-var readyToType = false;
-var readyToSubmit = false;
-var readyToSend = false;
-var scoreName = "";
-var highScoreId = null;
-var bestScore = null;
+var scoreListText; // String qui contient tout le classement - utilisé pour l'affichage
+var scoreListRectangle; // Un rectangle qui overlap le meilleur score pour le selectionner
+var scoreListRectangleY; // Position Y du rectangle
+var readyToType = false; // Indique si l'ont peut écrire dans le classement
+var readyToSubmit = false; // Indique si le score est prêt à être envoyé
+var readyToSend = false; // Indique si le score est envoyé
+var scoreName = ""; // Contient le nom que rentre le joueur quand il fait un HS
+var highScoreId = null; // L'id du meilleur score
+var bestScore = null; // String contenant le meilleur score et son nom, sert au lancement du jeu
 
 // Pour les tirs
-var bullet;
-var bulletGroup;
-var tempNot = false;
-var lastShot = 0;
-var cooldown = 300;
-var cooldownBeam = 0;
-var bulletSpeed = 1500;
-var activateAnim = false;
+var bullet; // Un tir
+var bulletGroup; // Le groupe de tirs
+var tempNot = false; // le status du cooldown : Impossible de tirer quand il est à true
+var lastShot = 0; // Temps depuis le dernier tir
+var cooldown = 300; // Temps de recharge entre chaque tir (est changé dans le supercombo)
+var cooldownBeam = 0; // Temps de recharge du SuperTir (est à zéro car c'est un SuperTir quand même)
+var bulletSpeed = 1500; // Vitesse du tir
+var activateAnim = false; // Active l'animation du vaisseau ou non
 
 // Pour les asteroids
-var asteroid;
-var numberOfAsteroids = 4;
-var asteroidWrap = true;
+var asteroid; // Un asteroide
+var numberOfAsteroids = 4; // Le nombre d'asteroides à générer
+var asteroidWrap = true; // Indique si les asteroides wrap sur la bordure du jeu (sert dans l'animation de lancement)
 
 // Pour le vaisseau
-var ship;
-var hp = 0;
-var shipHp;
-var shipHpGroup;
-
-var tempX;
-var tempY;
+var ship; // Le vaiseau, l'unique, le meilleur
+var hp = 0; // Nombre de vies (elles sont instanciés dans le create())
+var shipHp; // L'icone de la vie du vaisseau
+var shipHpGroup; // Le groupe des icones de vies du vaisseau
 
 // POUR LA MUSIQUE
-var beat1;
-var beat2;
-var speedRate = 1100;
-var ifActive = true;
+// (Oui, la musique est composé de deux notes.)
+var beat1; // Premier beat de la musique
+var beat2; // Second beat de la musique
 
-var thrustSound;
-var dieSound;
-var shipIsDead = false;
+var speedRate = 1100; // Vitesse de lecture de la musique (moins elle est élevé, plus la musique va vite)
+var ifActive = true; // Si la musique est active, oupa
 
+// Les sons
+var thrustSound; // Le bruit du moteur du vaiseau
+var dieSound; // Quand le vaiseau meurt (nullos)
+var shipIsDead = false; // Permet de savoir si le vaiseau est mort
+
+// Les 3 sons différents pour les explosions (d'asteroides)
 var explosionSound1;
 var explosionSound2;
 var explosionSound3;
 
+// Les 3 sons différents pour les tirs du vaiseau (normal et SuperCombo)
 var shotSound1;
 var shotSound2;
 var shotSound3;
+
+// Bruit du tir du SuperTir (C'est une gatling en fait)
 var machineGun;
 
+// Les 3 sons différents pour la saisie du clavier
 var typing1;
 var typing2;
 var typing3;
-var cancel;
-var resetAsteroid;
-var resetAsteroidPitch = 0;
 
-var scoreSent;
-var startShip;
+var cancel; // Son quand on cancel la saisie (quand on appuie sur backspace)
+var resetAsteroid; // Bruit quand l'asteroide est reset
+var resetAsteroidPitch = 0; // Le pitch de resetAsteroid
+
+var scoreSent; // Bruit quand le score est envoyé
+var startShip; // Bruit quand le vaiseau arrive sur le board
+
+var comboSound; // Bruit du combo
+var comboEnd; // Son joué quand on perd le combo
+var superCombo; // Bruit du SuperCombo
 
 // Tableau de musique (pour appeler des sons différents aléatoirement)
 explosionTab = [];
@@ -123,37 +133,30 @@ shotTab = [];
 typingTab = [];
 
 // Autre
-var readyToReset = false;
-var cursors;
-let keyR;
+var readyToReset = false; // Indique si le jeu est prêt à être reset
+var cursors; // Permet de get les touches
+let keyR; // Permet de get la touche r
 
 // Particle
-var particles;
+var particles; // Les particules
 
 // c-c-c-combo
-var smallCombo = 0;
-var checkpoint = false;
-var comboBar;
-var comboBarGroup;
-var comboCheckpoint;
+var smallCombo = 0; // Le combo de base
+var checkpoint = false; // Indique si le checkpoint de combo est activé ou non
+var comboBar; // La bar du combo
+var comboBarGroup; // Le groupe de la bar du combo
+var comboCheckpoint; // Le point de checkpoint de combo sur la barre
 
-var smallComboTab;
-var bigComboTab;
+var smallComboTab; // Tableau regroupant les points de combo (points = carré pour l'affichage)
+var superComboActive = false; // Indique si le superCombo est actif
 
-var superComboActive = false;
+var beam; // Un bullet du SuperTir
+var beamGroup; // Le groupe de bullet du SuperTir
+var activateSuperShot = false; // Indique si le SuperTir est activé ou non
+var superShot = false; // Indique si le SuperTir est actif
 
-var hit = false;
-var beam;
-var beamGroup;
-var activateSuperShot = false;
-var superShot = false;
-
-var comboSound;
-var comboEnd;
-var superCombo;
-var superComboText = "";
-
-var comboStatusText = "";
+var superComboText = ""; // Affiche le combo du SuperCombo
+var comboStatusText = ""; // Affiche le multiplicateur du combo (vide, 1.5, 2)
 
 // Initialisation de phaser
 var game = new Phaser.Game(config);
@@ -1425,9 +1428,25 @@ function showBestScoreTextTween(target, y) {
 }
 
 function addScore(number = 16) {
+  const oldScore = score;
   score += number * comboMultiplier;
-  let scoreFormated = zeroPad(score, 6);
-  scoreText.setText(`SCORE:${scoreFormated}`);
+  scoreText.setText(`SCORE:${zeroPad(score, 6)}`);
+  // increment(number, oldScore);
+}
+
+// Fonction qui marche pas trop, pas toucher pour le moment
+let incrementVar = 0;
+function increment(number, oldScore) {
+  if (incrementVar <= number) {
+    scoreText.setText(`SCORE:${zeroPad(oldScore + incrementVar, 6)}`);
+    incrementVar++;
+    setTimeout(() => {
+      increment(number, oldScore);
+    }, 10);
+  } else {
+    incrementVar = 0;
+    console.log(score);
+  }
 }
 
 getCurrentTime();
