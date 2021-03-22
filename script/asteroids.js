@@ -40,7 +40,7 @@ var config = {
 const HTML_body = document.querySelector("*");
 
 // Pour le texte
-var text;
+var scoreText;
 var endText;
 var endTextScore;
 var endTextReturn;
@@ -339,7 +339,7 @@ function create() {
   );
 
   // Initialisation des textes
-  text = this.add.bitmapText(10, 15, "pixelFont", "", 20);
+  scoreText = this.add.bitmapText(10, 15, "pixelFont", "", 20);
   endText = this.add
     .bitmapText(
       this.cameras.main.worldView.x + this.cameras.main.width / 2,
@@ -753,9 +753,7 @@ function killAsteroid(projectile, asteroid) {
       superCombo.stop();
       cooldown = 300;
 
-      score += smallCombo * 2;
-      let scoreFormated = zeroPad(score, 6);
-      text.setText(`SCORE:${scoreFormated}`);
+      addScore(smallCombo * 2);
 
       resetCombo(true);
     }, 3000);
@@ -774,18 +772,16 @@ function killAsteroid(projectile, asteroid) {
 
   projectile.destroy();
   asteroid.destroy();
-  score += 16 * comboMultiplier; // Le multiplicateur de combo servira plus tard hihi
-  let scoreFormated = zeroPad(score, 6);
-  text.setText(`SCORE:${scoreFormated}`);
+  addScore();
 
   if (smallCombo >= 10) {
     comboMultiplier = 2;
-    if (comboStatusText.text == "x1.5") {
+    if (comboStatusText.scoreText == "x1.5") {
       comboStatusText.setText("x2");
     }
   } else if (smallCombo >= 5) {
     comboMultiplier = 1.5;
-    if (comboStatusText.text == "") {
+    if (comboStatusText.scoreText == "") {
       comboStatusText.setText("x1.5");
       blinkTextFunction(comboStatusText, 400);
     }
@@ -1026,7 +1022,7 @@ function resetGameEnd(isInitiate = false) {
       }, 800);
     }
   } else {
-    text.setText("SCORE:000000");
+    scoreText.setText("SCORE:000000");
     addLife(3);
   }
 
@@ -1054,7 +1050,7 @@ function resetGameEnd(isInitiate = false) {
       playMusic();
       generateAsteroid(GLOBAL_Physics, numberOfAsteroids);
       if (isInitiate) {
-        text.setText("SCORE:000000");
+        scoreText.setText("SCORE:000000");
         addLife(3);
         comboBarGroup.setVisible(true);
         comboCheckpoint.setVisible(true);
@@ -1426,6 +1422,12 @@ function showBestScoreTextTween(target, y) {
     },
     callbackScope: this,
   });
+}
+
+function addScore(number = 16) {
+  score += number * comboMultiplier;
+  let scoreFormated = zeroPad(score, 6);
+  scoreText.setText(`SCORE:${scoreFormated}`);
 }
 
 getCurrentTime();
