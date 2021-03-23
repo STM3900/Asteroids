@@ -662,10 +662,7 @@ function update() {
  */
 function generateAsteroid(physics, number) {
   // Accélère la musique si celle-ci n'est pas déjà à son maximum
-  if (speedRate > 200) {
-    speedRate -= 100;
-  }
-
+  if (speedRate > 200) speedRate -= 100;
   let iterator = 0;
 
   /**
@@ -754,7 +751,13 @@ function getCurrentTime() {
   return time;
 }
 
+/**
+ *
+ * @param {Un tir du vaisseau} projectile
+ * @param {L'astéroide touché} asteroid
+ */
 function killAsteroid(projectile, asteroid) {
+  // On génère l'effet de particule
   let dot = particles.createEmitter({
     x: asteroid.x,
     y: projectile.y,
@@ -763,39 +766,44 @@ function killAsteroid(projectile, asteroid) {
     lifespan: 300,
   });
 
+  // La particule dure 100ms
   setTimeout(() => {
     dot.on = false;
   }, 100);
 
+  // Si on utilise pas le SuperTir, on ajoute au combo
   if (!superShot) {
     comboSound.play();
     comboSound.detune += 200;
     smallCombo++;
     if (superComboText.visible) {
+      // Affichage du SuperCombo
       superComboText.scale = 1 + smallCombo / 10;
       superComboText.setText(smallCombo);
-      console.log(superComboText.fontData.size);
     }
   }
   if (smallCombo == 5) {
     checkpoint = true;
-  }
-
-  if (smallCombo == 10) {
+  } else if (smallCombo == 10) {
+    // Activation du SuperCombo
     superComboActive = true;
     superComboText.scale = 1 + smallCombo / 10;
     superComboText.setText(smallCombo);
     superComboText.visible = true;
+
     blinkComboBar(100);
-    cooldown = 100;
+
+    cooldown = 100; // On fait tirer le vaiseau beaucoup plus rapidement
     console.log("SUPER COMBOOOO");
     playSuperComboSound(1600);
+
     setTimeout(() => {
       superComboActive = false;
       superComboText.visible = false;
       superCombo.stop();
       cooldown = 300;
 
+      // Ajoute le score du combo de fin x2
       addScore(smallCombo * 2);
 
       resetCombo(true);
@@ -805,13 +813,6 @@ function killAsteroid(projectile, asteroid) {
   updateComboBar(smallCombo);
 
   explosionTab[getRandomInt(3)].play();
-  if (asteroid.scale == 1.5) {
-    generateSmallerAsteroid(this.physics, asteroid, 1);
-    dot.setScale(1.5);
-  } else if (asteroid.scale == 1) {
-    generateSmallerAsteroid(this.physics, asteroid, 0.5);
-    dot.setScale(1.2);
-  }
 
   projectile.destroy();
   asteroid.destroy();
@@ -839,18 +840,31 @@ function killAsteroid(projectile, asteroid) {
       generateAsteroid(this.physics, numberOfAsteroids);
     }, 1000);
   }
+
+  if (asteroid.scale == 1.5) {
+    generateSmallerAsteroid(this.physics, asteroid, 1);
+    dot.setScale(1.5);
+  } else if (asteroid.scale == 1) {
+    generateSmallerAsteroid(this.physics, asteroid, 0.5);
+    dot.setScale(1.2);
+  }
 }
 
+/**
+ *
+ * @param {Le vaisseau} ship
+ */
 function killPlayer(ship) {
+  // empèche que le vaisseau meurt plusieurs fois à la suite
   if (ship.alpha == 1 && !shipIsDead) {
     superComboActive = false;
-    if (smallCombo > 0) {
-      comboEnd.play();
-    }
+    if (smallCombo > 0) comboEnd.play();
+
     resetCombo();
     resetComboBar(true);
     superShot = false;
     activateSuperShot = false;
+
     let dot = particles.createEmitter({
       x: ship.x,
       y: ship.y,
@@ -866,7 +880,6 @@ function killPlayer(ship) {
     }, 110);
 
     shipIsDead = true;
-    console.log("ship ded");
     dieSound.play();
     hp--;
     destroyLife();
@@ -898,17 +911,27 @@ function killPlayer(ship) {
     } else {
       resetCombo();
       resetComboBar(true);
-      console.log("T'as perdu mdr");
       ship.disableBody(true, true);
       endGame();
     }
   }
 }
 
+/**
+ *
+ * @param {La valeur maximale de l'interval} max
+ * @returns Un nombre aléatoire entre 0 et valeur max - 1
+ */
 function getRandomInt(max) {
   return Math.floor(Math.random() * Math.floor(max));
 }
 
+/**
+ *
+ * @param {Le nombre} number
+ * @param {La taille du score à renvoyer} size
+ * @returns un score formaté (ex zeroPad(12, 6) => 000012)
+ */
 function zeroPad(number, size) {
   let stringNumber = String(number);
   while (stringNumber.length < (size || 2)) {
@@ -917,29 +940,37 @@ function zeroPad(number, size) {
   return stringNumber;
 }
 
+/**
+ * Enlève une vie sur le groupe des vies
+ */
 function destroyLife() {
   shipHpGroup.getChildren()[shipHpGroup.getChildren().length - 1].destroy();
 }
 
-// Fonctionne aussi bien pour l'initialisation de vie qu'à un ajout via powerup
+/**
+ * Fonctionne aussi bien pour l'initialisation de vie qu'à un ajout via powerup
+ * @param {Le nombre de vies (int)} numberOfLife
+ */
 function addLife(numberOfLife) {
   if ((shipHpGroup.getChildren().length = 0)) {
     shipHp = shipHpGroup.create(config.width - 30, 25, "shipHp");
-    shipHp.setScale(0.4);
-    hp++;
   } else {
     for (let i = 0; i < numberOfLife; i++) {
-      hp++;
       shipHp = shipHpGroup.create(
         config.width - 30 - shipHpGroup.getChildren().length * 45,
         25,
         "shipHp"
       );
-      shipHp.setScale(0.4);
     }
   }
+  shipHp.setScale(0.4);
+  hp++;
 }
 
+/**
+ * Fonction pour jouer la musique du jeu
+ * La musique fait deux notes, et on augmente sa cadence au fûr et à mesure du jeu
+ */
 function playMusic() {
   beat1.play();
   setTimeout(() => {
@@ -952,11 +983,17 @@ function playMusic() {
   }, speedRate);
 }
 
+/**
+ * Déclenché quand il y a un Game Over
+ */
 function endGame() {
   ifActive = false;
   readyToReset = true;
-  let scoreFormated = zeroPad(score, 6);
+
   endText.setText("GAME OVER");
+  endTextScore.setText(`SCORE:${zeroPad(score, 6)}`);
+
+  //Vérifie si le classement est disponible, sinon ne l'affiche pas
   if (isScoreListAvaible) {
     scoreListRectangle.active = true;
     checkBestScore(score, scoreList);
@@ -966,6 +1003,7 @@ function endGame() {
     endTextReturn.y -= 160;
   }
 
+  // Vérifie si il y a un nouveau HS et agit en conséquences
   if (!highScoreId) {
     endTextReturn.setText("PRESS R TO RESTART");
     blinkTextFunction(endTextReturn, 600);
@@ -976,15 +1014,22 @@ function endGame() {
     highScoreText.setText("New high score");
     blinkTextFunction(highScoreText, 600, true);
   }
-  endTextScore.setText(`SCORE:${scoreFormated}`);
 }
 
+/**
+ * Première fonction du reset de la partie
+ * (Le reset de la partie ce fait en 3 temps :
+ * - resetGameBegin
+ * - cleanAsteroids
+ * - resetGameEnd
+ * )
+ */
 function resetGameBegin() {
   readyToReset = false;
   shipIsDead = false;
   scoreListRectangle.active = false;
   scoreListRectangle.visible = false;
-  temp = true;
+  firstUpdate = true;
 
   if (highScoreId) {
     endText.y += 20;
@@ -1010,22 +1055,36 @@ function resetGameBegin() {
   highScoreText.setText("");
   scoreListEnter.setText("");
   endTextReturn.setText("");
+
   let size = asteroidsGroup.children.size;
   let i = 0;
   cleanAsteroids(i, size, 100);
 }
 
+/**
+ * Seconde partie du reset
+ * @param {itérateur} i
+ * @param {la taille du groupe d'astéroides} size
+ * @param {le délais entre chaque explosion} delay
+ */
 function cleanAsteroids(i, size, delay) {
   setTimeout(() => {
     resetAsteroid.play();
     resetAsteroidPitch += 100;
+
     resetAsteroid.detune = resetAsteroidPitch;
     asteroidsGroup.getChildren()[0].destroy();
+
     i++;
     i == size ? resetGameEnd() : cleanAsteroids(i, size, delay);
   }, delay);
 }
 
+/**
+ * La dernière partie du reset
+ * Remet les variables à leurs valeurs initiales et relance la partie
+ * @param {Permet de savoir si la fonction est un lancement de partie ou un reset} isInitiate
+ */
 function resetGameEnd(isInitiate = false) {
   speedRate = 1100;
   activateSuperShot = false;
@@ -1244,7 +1303,7 @@ function updateScores() {
   updateScoreDisplay();
 }
 
-let temp = true;
+let firstUpdate = true;
 
 function updateScoreDisplay() {
   let scoreFormated = zeroPad(score, 6);
@@ -1258,8 +1317,8 @@ function updateScoreDisplay() {
     }
   }
 
-  if (temp) {
-    temp = false;
+  if (firstUpdate) {
+    firstUpdate = false;
     let newScoreList = [];
 
     for (let i = 0; i < highScoreId; i++) {
