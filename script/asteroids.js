@@ -1086,12 +1086,14 @@ function cleanAsteroids(i, size, delay) {
  * @param {Permet de savoir si la fonction est un lancement de partie ou un reset} isInitiate
  */
 function resetGameEnd(isInitiate = false) {
+  // On remet les valeurs des variable à leurs initiale
   speedRate = 1100;
   activateSuperShot = false;
   numberOfAsteroids = 4;
   score = 0;
   resetAsteroidPitch = 0;
 
+  // Si on est au lancement de la partie
   if (isInitiate) {
     asteroidWrap = false;
     var tween = this.GLOBAL_Tween.add({
@@ -1118,6 +1120,7 @@ function resetGameEnd(isInitiate = false) {
       callbackScope: this,
     });
 
+    // Si le classement est disponible, affiche le meilleur score, 0.8 seconde après
     if (isScoreListAvaible) {
       setTimeout(() => {
         showBestScoreText();
@@ -1128,13 +1131,16 @@ function resetGameEnd(isInitiate = false) {
     addLife(3);
   }
 
+  // Met le vaiseau à la verticale
   ship.angle = -90;
 
+  // On positionne le vaisseau en bas de l'écran, hors du cadre du jeu
   let x = config.width / 2;
   let y = config.height + 20;
   ship.enableBody(true, x, y, true, true);
   ship.alpha = 0.5;
 
+  // On joue le son du vaiseau en décalé pour que ce soit un peu plus agréable à écouter
   setTimeout(() => {
     startShip.play();
   }, 100);
@@ -1142,15 +1148,20 @@ function resetGameEnd(isInitiate = false) {
   var tween = this.GLOBAL_Tween.add({
     targets: ship,
     y: config.height / 2,
-    ease: isInitiate ? "Quad.easeInOut" : "Power1",
-    duration: isScoreListAvaible && isInitiate ? 2500 : 1500,
+    ease: isInitiate ? "Quad.easeInOut" : "Power1", // Change la transition du vaiseau si on lance la partie, ou si c'est pendant un respawn
+    duration: isScoreListAvaible && isInitiate ? 2500 : 1500, // La durée change si on peut afficher le meilleur score
     repeat: 0,
     onComplete: function () {
+      // Lancement de la partie
       ship.body.velocity.y = 0;
       ship.alpha = 1;
       ifActive = true;
+
       playMusic();
+
       generateAsteroid(GLOBAL_Physics, numberOfAsteroids);
+
+      // Lancé au lancement de la partie
       if (isInitiate) {
         scoreText.setText("SCORE:000000");
         addLife(3);
@@ -1163,9 +1174,16 @@ function resetGameEnd(isInitiate = false) {
   });
 }
 
+/**
+ * Pour faire clignoter du texte
+ * @param {Le texte à faire clignoter} blinkText
+ * @param {Le delais entre chaque blink} delay
+ * @param {Utilisé dans la fonction pour le clignotement} blinker
+ */
 function blinkTextFunction(blinkText, delay, blinker = false) {
   metronom = blinker;
   if (blinkText.text != "") {
+    // La fonction s'arrête automatiquement dès que le texte devient vide
     setTimeout(() => {
       blinkText.setVisible(metronom);
       blinkTextFunction(blinkText, delay, !metronom);
@@ -1175,9 +1193,15 @@ function blinkTextFunction(blinkText, delay, blinker = false) {
   }
 }
 
+/**
+ * Pour faire clignoter la barre de combo lors du SuperCombo
+ * @param {Le delais entre chaque blink} delay
+ * @param {Utilisé dans la fonction pour le clignotement} blinker
+ */
 function blinkComboBar(delay, blinker = false) {
   metronom = blinker;
   if (superComboActive) {
+    // Désactive le clignotement quand on est plus en SuperCombo
     setTimeout(() => {
       for (let i = 0; i < 10; i++) {
         metronom
@@ -1192,6 +1216,9 @@ function blinkComboBar(delay, blinker = false) {
   }
 }
 
+/**
+ * Fait apparaitre la barre de combo
+ */
 function generateComboBar() {
   for (let i = 0; i < 10; i++) {
     comboBar = comboBarGroup.create(
@@ -1206,6 +1233,10 @@ function generateComboBar() {
   }
 }
 
+/**
+ *
+ * @param {La valeur du combo} combo
+ */
 function updateComboBar(combo) {
   if (combo <= 10) {
     for (let i = 0; i < combo; i++) {
@@ -1217,6 +1248,10 @@ function updateComboBar(combo) {
   }
 }
 
+/**
+ * Réinitialise le combo
+ * @param {Si c'est un reset partiel ou total du combo} fullreset
+ */
 function resetCombo(fullreset = false) {
   console.log("combo reset");
   smallCombo = 0;
@@ -1227,6 +1262,10 @@ function resetCombo(fullreset = false) {
   resetComboBar(fullreset);
 }
 
+/**
+ *
+ * @param {Si c'est un reset partiel ou total du combo} fullreset
+ */
 function resetComboBar(fullreset = false) {
   comboCheckpoint.alpha = 0.4;
 
@@ -1237,6 +1276,10 @@ function resetComboBar(fullreset = false) {
   checkpoint = false;
 }
 
+/**
+ * Joue le son du SuperCombo
+ * @param {Durée du son} duration
+ */
 function playSuperComboSound(duration) {
   if (superComboActive) {
     superCombo.play();
@@ -1246,6 +1289,10 @@ function playSuperComboSound(duration) {
   }
 }
 
+/**
+ * Activé pendant le lancement de la partie,
+ * Fait déscendre les astéroides hors de l'écran de jeu, puis les détruit
+ */
 function slideDown() {
   for (let i = 0; i < asteroidsGroup.getChildren().length; i++) {
     let children = asteroidsGroup.getChildren()[i];
