@@ -1321,12 +1321,16 @@ function generateScores(list) {
     `);
 }
 
+/**
+ * Vérifie si le score du joueur dépasse un score du classement
+ * @param {Le score du joueur} score
+ * @param {Le classement} list
+ */
 function checkBestScore(score, list) {
   let isNewHighScore = false;
   let i = 0;
   let indexOfNewHighScore = null;
 
-  // TODO : améliorer l'algo pour quand le score est plus petit
   if (score > 0) {
     while (!isNewHighScore && i < 5) {
       if (score > +list[i].score) {
@@ -1342,6 +1346,9 @@ function checkBestScore(score, list) {
   }
 }
 
+/**
+ * Lance l'update du classement, quand il y a un nouvel HS
+ */
 function updateScores() {
   readyToType = true;
   scoreListRectangle.y = scoreListRectangleY + 45 * highScoreId - 1;
@@ -1352,6 +1359,9 @@ function updateScores() {
 
 let firstUpdate = true;
 
+/**
+ * Actualise l'affichage du classement, en prenant en compte la saisie de l'utilisateur
+ */
 function updateScoreDisplay() {
   let scoreFormated = zeroPad(score, 6);
   let scoreNameDisplay = scoreName;
@@ -1364,6 +1374,10 @@ function updateScoreDisplay() {
     }
   }
 
+  /**
+   * Le contenu du if permet de faire un nouveau classement en décallant les scores inférieurs au HS de un cran
+   * et ensuite coupant ceux qui sont en dehors du tableau de 5 éléments
+   */
   if (firstUpdate) {
     firstUpdate = false;
     let newScoreList = [];
@@ -1390,28 +1404,26 @@ function updateScoreDisplay() {
       });
     }
 
-    console.log(newScoreList);
     newScoreList = newScoreList.slice(0, 5);
-    console.log(newScoreList);
     scoreList = newScoreList;
   } else {
     scoreList[highScoreId].score = scoreFormated;
     scoreList[highScoreId].name = scoreNameDisplay;
   }
 
+  // On set les id des scores correctement (de 1 à 5)
   for (i = 1; i < 6; i++) {
     scoreList[i - 1].id = i;
   }
 
-  scoreListText.setText(`
-    ${scoreList[0].id} ${scoreList[0].name}....${scoreList[0].score}\n
-    ${scoreList[1].id} ${scoreList[1].name}....${scoreList[1].score}\n
-    ${scoreList[2].id} ${scoreList[2].name}....${scoreList[2].score}\n
-    ${scoreList[3].id} ${scoreList[3].name}....${scoreList[3].score}\n
-    ${scoreList[4].id} ${scoreList[4].name}....${scoreList[4].score}\n
-    `);
+  generateScores(scoreList);
 }
 
+/**
+ *
+ * @param {Le delais en ms} delay
+ * @param {Utilisé dans la fonction pour le clignotement} blinker
+ */
 function blinkHighScoreRectangle(delay, blinker = true) {
   blinker = !blinker;
   scoreListRectangle.visible = true;
@@ -1428,7 +1440,9 @@ function blinkHighScoreRectangle(delay, blinker = true) {
   }
 }
 
-// fonction de keypress
+/**
+ * EventListener qui se déclange quand on appuie sur une touche
+ */
 document.addEventListener("keydown", (event) => {
   if (readyToType) {
     const keyCode = event.code;
@@ -1458,6 +1472,11 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
+/**
+ * Vérifie si l'utilisateur rentre une lettre (fonctionne en azerty et en qwerty)
+ * @param {La touche rentrée par l'utilisateur} key
+ * @returns true si la touche est valide et false si ce n'est pas le cas
+ */
 function checkGoodKey(key) {
   const keyCode = key.code;
   const keyValue = key.key;
@@ -1489,7 +1508,12 @@ function checkGoodKey(key) {
   return value;
 }
 
+/**
+ * Envoie le score dans notre API, qui le mettra dans la BDD
+ * (Api => server.js)
+ */
 function sendScore() {
+  // On reset les valeurs de saisie
   readyToType = false;
   readyToSubmit = false;
   readyToSend = true;
@@ -1504,11 +1528,18 @@ function sendScore() {
 
   console.log(scoreList);
   scoreSent.play();
+
   scoreListEnter.setText("SCORE SAVED");
   endTextReturn.setText("PRESS R TO RESTART");
+
   blinkTextFunction(endTextReturn, 600);
 }
 
+/**
+ * Permet de récupérer la liste des scores, sous un format tableau d'objets
+ * Les scores sont stockés dans la bdd, puis sont récupéré via une api
+ * (Api => server.js)
+ */
 function getScoreList() {
   fetch("http://127.0.0.1:3000/scores")
     .then((response) => response.json())
@@ -1527,6 +1558,9 @@ function getScoreList() {
     );
 }
 
+/**
+ * Au lancement de la partie, affiche le meilleur score pour taunt le joueur
+ */
 function showBestScoreText() {
   bestScoreTextLabel.setText("High score");
   bestScoreText.setText(`${bestScore.name} - ${bestScore.score}`);
@@ -1559,6 +1593,11 @@ function showBestScoreText() {
   });
 }
 
+/**
+ * Permet de simplifier un peu la fonction showBestScoreText()
+ * @param {cible (en l'occurence, le bestScoreText)} target
+ * @param {la position y voulue} y
+ */
 function showBestScoreTextTween(target, y) {
   var tween = this.GLOBAL_Tween.add({
     targets: target,
@@ -1573,15 +1612,26 @@ function showBestScoreTextTween(target, y) {
   });
 }
 
+/**
+ * Ajoute le score voulu à notre score total
+ * @param {Le score, si non renseigné est égal à 16} number
+ */
 function addScore(number = 16) {
-  const oldScore = score;
   score += number * comboMultiplier;
   scoreText.setText(`SCORE:${zeroPad(score, 6)}`);
+  // Valeurs pour la fonction d'animation de score
+  // const oldScore = score;
   // increment(number, oldScore);
 }
 
 // Fonction qui marche pas trop, pas toucher pour le moment
 let incrementVar = 0;
+/**
+ * Fonction pour faire une animation quand on augmente de score
+ * ! Mais elle ne fonctionne pas très bien pour le moment, donc à ne pas utiliser
+ * @param {La valeur du score} number
+ * @param {L'ancien score} oldScore
+ */
 function increment(number, oldScore) {
   if (incrementVar <= number) {
     scoreText.setText(`SCORE:${zeroPad(oldScore + incrementVar, 6)}`);
@@ -1595,4 +1645,5 @@ function increment(number, oldScore) {
   }
 }
 
+// On get le temps actuel
 getCurrentTime();
