@@ -954,6 +954,8 @@ function destroyLife() {
 function addLife(numberOfLife) {
   if ((shipHpGroup.getChildren().length = 0)) {
     shipHp = shipHpGroup.create(config.width - 30, 25, "shipHp");
+    shipHp.setScale(0.4);
+    hp++;
   } else {
     for (let i = 0; i < numberOfLife; i++) {
       shipHp = shipHpGroup.create(
@@ -961,10 +963,10 @@ function addLife(numberOfLife) {
         25,
         "shipHp"
       );
+      shipHp.setScale(0.4);
+      hp++;
     }
   }
-  shipHp.setScale(0.4);
-  hp++;
 }
 
 /**
