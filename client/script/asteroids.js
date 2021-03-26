@@ -39,83 +39,93 @@ var config = {
 // SELECTEUR HTML
 const HTML_body = document.querySelector("*");
 
-// Pour le texte
-var text;
-var endText;
-var endTextScore;
-var endTextReturn;
+// Texte
+var scoreText; // Le score qui sera affiché à l'écran
+var endText; // Texte de fin, affiche "GAME OVER"
+var endTextScore; // Score affiché sur l'écran de fin
+var endTextReturn; // Texte affiché sur l'écran de fin, affiche "Press r to restart"
 
-var titleText;
-var startText;
-var initiateGame = false;
+var titleText; // Le titre du jeu, affiché sur l'écran titre (logique)
+var startText; // Texte affiché sur l'écran titre : "press space to start"
+var initiateGame = false; // Variable indiquant si la game est initialisé (quand on appuie sur espace)
 
 // Score
-var score = 0;
-var comboMultiplier = 1;
+var score = 0; // Le score du joueur
+var comboMultiplier = 1; // Le multiplicateur du combo
 
 // Classements
-var scoreListText;
-var scoreListRectangle;
-var scoreListRectangleY;
-var readyToType = false;
-var readyToSubmit = false;
-var readyToSend = false;
-var scoreName = "";
-var highScoreId = null;
-var bestScore = null;
+var scoreListText; // String qui contient tout le classement - utilisé pour l'affichage
+var scoreListRectangle; // Un rectangle qui overlap le meilleur score pour le selectionner
+var scoreListRectangleY; // Position Y du rectangle
+var readyToType = false; // Indique si l'ont peut écrire dans le classement
+var readyToSubmit = false; // Indique si le score est prêt à être envoyé
+var readyToSend = false; // Indique si le score est envoyé
+var scoreName = ""; // Contient le nom que rentre le joueur quand il fait un HS
+var highScoreId = null; // L'id du meilleur score
+var bestScore = null; // String contenant le meilleur score et son nom, sert au lancement du jeu
 
 // Pour les tirs
-var bullet;
-var bulletGroup;
-var tempNot = false;
-var lastShot = 0;
-var cooldown = 300;
-var cooldownBeam = 0;
-var bulletSpeed = 1500;
-var activateAnim = false;
+var bullet; // Un tir
+var bulletGroup; // Le groupe de tirs
+var tempNot = false; // le status du cooldown : Impossible de tirer quand il est à true
+var lastShot = 0; // Temps depuis le dernier tir
+var cooldown = 300; // Temps de recharge entre chaque tir (est changé dans le supercombo)
+var cooldownBeam = 0; // Temps de recharge du SuperTir (est à zéro car c'est un SuperTir quand même)
+var bulletSpeed = 1500; // Vitesse du tir
+var activateAnim = false; // Active l'animation du vaisseau ou non
 
 // Pour les asteroids
-var asteroid;
-var numberOfAsteroids = 4;
-var asteroidWrap = true;
+var asteroid; // Un asteroide
+var numberOfAsteroids = 4; // Le nombre d'asteroides à générer
+var asteroidWrap = true; // Indique si les asteroides wrap sur la bordure du jeu (sert dans l'animation de lancement)
 
 // Pour le vaisseau
-var ship;
-var hp = 0;
-var shipHp;
-var shipHpGroup;
-
-var tempX;
-var tempY;
+var ship; // Le vaiseau, l'unique, le meilleur
+var hp = 0; // Nombre de vies (elles sont instanciés dans le create())
+var shipHp; // L'icone de la vie du vaisseau
+var shipHpGroup; // Le groupe des icones de vies du vaisseau
 
 // POUR LA MUSIQUE
-var beat1;
-var beat2;
-var speedRate = 1100;
-var ifActive = true;
+// (Oui, la musique est composé de deux notes.)
+var beat1; // Premier beat de la musique
+var beat2; // Second beat de la musique
 
-var thrustSound;
-var dieSound;
-var shipIsDead = false;
+var speedRate = 1100; // Vitesse de lecture de la musique (moins elle est élevé, plus la musique va vite)
+var ifActive = true; // Si la musique est active, oupa
 
+// Les sons
+var thrustSound; // Le son du moteur du vaiseau
+var dieSound; // Quand le vaiseau meurt (nullos)
+var shipIsDead = false; // Permet de savoir si le vaiseau est mort
+
+// Les 3 sons différents pour les explosions (d'asteroides)
 var explosionSound1;
 var explosionSound2;
 var explosionSound3;
 
+// Les 3 sons différents pour les tirs du vaiseau (normal et SuperCombo)
 var shotSound1;
 var shotSound2;
 var shotSound3;
+
+// Son du tir du SuperTir (C'est une gatling en fait)
 var machineGun;
 
+// Les 3 sons différents pour la saisie du clavier
 var typing1;
 var typing2;
 var typing3;
-var cancel;
-var resetAsteroid;
-var resetAsteroidPitch = 0;
 
-var scoreSent;
-var startShip;
+var cancel; // Son quand on cancel la saisie (quand on appuie sur backspace)
+var resetAsteroid; // Son quand l'asteroide est reset
+var resetAsteroidPitch = 0; // Le pitch de resetAsteroid
+
+var scoreSent; // Son quand le score est envoyé
+var startShip; // Son quand le vaiseau arrive sur le board
+
+var comboSound; // Son du combo
+var comboEnd; // Son joué quand on perd le combo
+var superCombo; // Son du SuperCombo
 
 // Tableau de musique (pour appeler des sons différents aléatoirement)
 explosionTab = [];
@@ -123,43 +133,37 @@ shotTab = [];
 typingTab = [];
 
 // Autre
-var readyToReset = false;
-var cursors;
-let keyR;
+var readyToReset = false; // Indique si le jeu est prêt à être reset
+var cursors; // Permet de get les touches
+let keyR; // Permet de get la touche r
 
 // Particle
-var particles;
+var particles; // Les particules
 
 // c-c-c-combo
-var smallCombo = 0;
-var checkpoint = false;
-var comboBar;
-var comboBarGroup;
-var comboCheckpoint;
+var smallCombo = 0; // Le combo de base
+var checkpoint = false; // Indique si le checkpoint de combo est activé ou non
+var comboBar; // La bar du combo
+var comboBarGroup; // Le groupe de la bar du combo
+var comboCheckpoint; // Le point de checkpoint de combo sur la barre
 
-var smallComboTab;
-var bigComboTab;
+var smallComboTab; // Tableau regroupant les points de combo (points = carré pour l'affichage)
+var superComboActive = false; // Indique si le superCombo est actif
 
-var superComboActive = false;
+var beam; // Un bullet du SuperTir
+var beamGroup; // Le groupe de bullet du SuperTir
+var activateSuperShot = false; // Indique si le SuperTir est activé ou non
+var superShot = false; // Indique si le SuperTir est actif
 
-var hit = false;
-var beam;
-var beamGroup;
-var activateSuperShot = false;
-var superShot = false;
+var superComboText = ""; // Affiche le combo du SuperCombo
+var comboStatusText = ""; // Affiche le multiplicateur du combo (vide, 1.5, 2)
 
-var comboSound;
-var comboEnd;
-var superCombo;
-var superComboText = "";
-
-var comboStatusText = "";
-
-// Initialisation de phaser
+/**
+ * Initialisation de phaser
+ */
 var game = new Phaser.Game(config);
 function preload() {
   // C'est là qu'on vas charger les images et les sons
-
   this.load.image("bullet", "img/sprite/bullet.png"); // Tir
   this.load.spritesheet("ship", "img/sprite/ship_animation.png", {
     // Vaisseau
@@ -224,18 +228,21 @@ function create() {
   beat1 = this.sound.add("beat1", { volume: 0.5 });
   beat2 = this.sound.add("beat2", { volume: 0.5 });
 
-  thrustSound = this.sound.add("thrust", { volume: 0.3 });
-  dieSound = this.sound.add("die", { volume: 0.3 });
+  thrustSound = this.sound.add("thrust", { volume: 0.3 }); // Son du propulseur
+  dieSound = this.sound.add("die", { volume: 0.3 }); // Son de mort
 
+  // Son des explosions
   explosionSound1 = this.sound.add("explosion1", { volume: 0.1 });
   explosionSound2 = this.sound.add("explosion2", { volume: 0.1 });
   explosionSound3 = this.sound.add("explosion3", { volume: 0.1 });
 
+  // Son des tirs
   shotSound1 = this.sound.add("shot1", { volume: 0.2, detune: -100 });
   shotSound2 = this.sound.add("shot2", { volume: 0.2, detune: -100 });
   shotSound3 = this.sound.add("shot3", { volume: 0.2, detune: -100 });
   machineGun = this.sound.add("machineGun", { volume: 0.8 });
 
+  // Sons des combos
   comboSound = this.sound.add("comboSound", { volume: 0.3, detune: -200 });
   comboEnd = this.sound.add("comboBreak", {
     volume: 0.3,
@@ -248,11 +255,15 @@ function create() {
     rate: 0.1,
   });
 
+  // Son de saisie
   typing1 = this.sound.add("typing1", { volume: 0.3 });
   typing2 = this.sound.add("typing2", { volume: 0.3 });
   typing3 = this.sound.add("typing3", { volume: 0.3 });
 
+  // Son d'annulation
   cancel = this.sound.add("cancel", { volume: 0.2 });
+
+  // Sons pour le reset de la partie
   resetAsteroid = this.sound.add("resetAsteroid", {
     volume: 0.4,
     detune: -400,
@@ -279,8 +290,10 @@ function create() {
   ship = this.physics.add.sprite(400, 300, "ship").setImmovable(true);
   ship.setSize(25, 22.5, true);
   shipHp = this.physics.add.sprite(400, 300, "ship");
+
   bullet = this.physics.add.sprite(13, 37, "bullet");
   asteroid = this.physics.add.sprite(600, 600, "asteroid");
+
   comboBar = this.physics.add.sprite(400, 300, "comboMetter");
   comboCheckpoint = this.physics.add.sprite(
     config.width / 2,
@@ -291,6 +304,7 @@ function create() {
   comboCheckpoint.setScale(1.5);
   comboCheckpoint.alpha = 0.4;
 
+  // On détruit les sprites que l'ont utilise pas (sert pour les groupes)
   shipHp.destroy();
   bullet.destroy();
   asteroid.destroy();
@@ -339,7 +353,7 @@ function create() {
   );
 
   // Initialisation des textes
-  text = this.add.bitmapText(10, 15, "pixelFont", "", 20);
+  scoreText = this.add.bitmapText(10, 15, "pixelFont", "", 20);
   endText = this.add
     .bitmapText(
       this.cameras.main.worldView.x + this.cameras.main.width / 2,
@@ -369,6 +383,7 @@ function create() {
       32
     )
     .setOrigin(0.5);
+
   endTextReturn = this.add
     .bitmapText(
       this.cameras.main.worldView.x + this.cameras.main.width / 2,
@@ -378,6 +393,7 @@ function create() {
       10
     )
     .setOrigin(0.5);
+
   titleText = this.add
     .bitmapText(
       this.cameras.main.worldView.x + this.cameras.main.width / 2,
@@ -387,6 +403,7 @@ function create() {
       48
     )
     .setOrigin(0.5);
+
   startText = this.add
     .bitmapText(
       this.cameras.main.worldView.x + this.cameras.main.width / 2,
@@ -463,6 +480,7 @@ function create() {
   scoreListRectangle.active = false;
 
   comboStatusText = this.add.bitmapText(10, 45, "pixelFont", "", 16);
+
   // Création des groupes de sprite
   asteroidsGroup = this.physics.add.group();
   bulletGroup = this.physics.add.group();
@@ -637,13 +655,20 @@ function update() {
   }
 }
 
+/**
+ *
+ * @param {Le moteur physique} physics
+ * @param {Le nombre d'astéroides à créer} number
+ */
 function generateAsteroid(physics, number) {
-  // config.width = 1440
-  // config.height = 810
-  if (speedRate > 200) {
-    speedRate -= 100;
-  }
+  // Accélère la musique si celle-ci n'est pas déjà à son maximum
+  if (speedRate > 200) speedRate -= 100;
   let iterator = 0;
+
+  /**
+   * Le tableau des différentes positions possibles
+   * Les asteroides, ne peuvent spawner que dans les coins du bord (évite de se faire instant kill)
+   */
   let posArray = [
     {
       x: 0 + getRandomInt(100),
@@ -664,21 +689,24 @@ function generateAsteroid(physics, number) {
   ];
 
   for (let i = 0; i < number; i++) {
+    // Permet de "tourner en rond" sur le spawn des astéroides
     if (iterator > 3) {
       iterator = 0;
     }
 
+    // On crée un astéroide, avec une position sur un coin
     var currentAsteroid = asteroidsGroup.create(
       posArray[iterator].x,
       posArray[iterator].y,
       "asteroid"
     );
 
+    // On lui donne un angle aléatoire, qui défininra sa trajectoire (en ligne droite)
     currentAsteroid.angle = getRandomInt(360);
     let rad = Phaser.Math.DegToRad(currentAsteroid.angle);
     physics.velocityFromRotation(
       rad,
-      100 + getRandomInt(100),
+      100 + getRandomInt(100), // La vitesse est aussi en partie aléatoire
       currentAsteroid.body.velocity
     );
     currentAsteroid.setScale(1.5);
@@ -687,31 +715,49 @@ function generateAsteroid(physics, number) {
   }
 }
 
-function generateAsteroid2(physics, asteroid, scale) {
+/**
+ *
+ * @param {Le moteur physique} physics
+ * @param {L'asteroide} asteroid
+ * @param {La taille de celui-ci (permet de calculer sa vitesse)} scale
+ */
+function generateSmallerAsteroid(physics, asteroid, scale) {
   for (let i = 0; i < 2; i++) {
+    // On crée deux astéroides à la position de celui qu'on vient de toz
     var currentAsteroid2 = asteroidsGroup.create(
       asteroid.x,
       asteroid.y,
       "asteroid"
     );
 
+    // On lui règle la bonne taille
     currentAsteroid2.setScale(scale);
     currentAsteroid2.angle = getRandomInt(360);
     let rad = Phaser.Math.DegToRad(currentAsteroid2.angle);
     physics.velocityFromRotation(
       rad,
-      200 + getRandomInt(50) + (scale == 0.5 ? getRandomInt(100) : 0),
+      200 + getRandomInt(50) + (scale == 0.5 ? getRandomInt(100) : 0), // La vitesse de l'astéroide sera plus rapide si il est plus petit !
       currentAsteroid2.body.velocity
     );
   }
 }
 
+/**
+ *
+ * @returns Renvoit le timestamp actuel
+ */
 function getCurrentTime() {
   let time = Date.now();
   return time;
 }
 
+/**
+ *
+ * @param {Un tir du vaisseau} projectile
+ * @param {L'astéroide touché} asteroid
+ */
 function killAsteroid(projectile, asteroid) {
+  // On génère l'effet de particule
   let dot = particles.createEmitter({
     x: asteroid.x,
     y: projectile.y,
@@ -720,42 +766,45 @@ function killAsteroid(projectile, asteroid) {
     lifespan: 300,
   });
 
+  // La particule dure 100ms
   setTimeout(() => {
     dot.on = false;
   }, 100);
 
+  // Si on utilise pas le SuperTir, on ajoute au combo
   if (!superShot) {
     comboSound.play();
     comboSound.detune += 200;
     smallCombo++;
     if (superComboText.visible) {
+      // Affichage du SuperCombo
       superComboText.scale = 1 + smallCombo / 10;
       superComboText.setText(smallCombo);
-      console.log(superComboText.fontData.size);
     }
   }
   if (smallCombo == 5) {
     checkpoint = true;
-  }
-
-  if (smallCombo == 10) {
+  } else if (smallCombo == 10) {
+    // Activation du SuperCombo
     superComboActive = true;
     superComboText.scale = 1 + smallCombo / 10;
     superComboText.setText(smallCombo);
     superComboText.visible = true;
+
     blinkComboBar(100);
-    cooldown = 100;
+
+    cooldown = 100; // On fait tirer le vaiseau beaucoup plus rapidement
     console.log("SUPER COMBOOOO");
     playSuperComboSound(1600);
+
     setTimeout(() => {
       superComboActive = false;
       superComboText.visible = false;
       superCombo.stop();
       cooldown = 300;
 
-      score += smallCombo * 2;
-      let scoreFormated = zeroPad(score, 6);
-      text.setText(`SCORE:${scoreFormated}`);
+      // Ajoute le score du combo de fin x2
+      addScore(smallCombo * 2);
 
       resetCombo(true);
     }, 3000);
@@ -764,28 +813,19 @@ function killAsteroid(projectile, asteroid) {
   updateComboBar(smallCombo);
 
   explosionTab[getRandomInt(3)].play();
-  if (asteroid.scale == 1.5) {
-    generateAsteroid2(this.physics, asteroid, 1);
-    dot.setScale(1.5);
-  } else if (asteroid.scale == 1) {
-    generateAsteroid2(this.physics, asteroid, 0.5);
-    dot.setScale(1.2);
-  }
 
   projectile.destroy();
   asteroid.destroy();
-  score += 16 * comboMultiplier; // Le multiplicateur de combo servira plus tard hihi
-  let scoreFormated = zeroPad(score, 6);
-  text.setText(`SCORE:${scoreFormated}`);
+  addScore();
 
   if (smallCombo >= 10) {
     comboMultiplier = 2;
-    if (comboStatusText.text == "x1.5") {
+    if (comboStatusText.scoreText == "x1.5") {
       comboStatusText.setText("x2");
     }
   } else if (smallCombo >= 5) {
     comboMultiplier = 1.5;
-    if (comboStatusText.text == "") {
+    if (comboStatusText.scoreText == "") {
       comboStatusText.setText("x1.5");
       blinkTextFunction(comboStatusText, 400);
     }
@@ -800,18 +840,31 @@ function killAsteroid(projectile, asteroid) {
       generateAsteroid(this.physics, numberOfAsteroids);
     }, 1000);
   }
+
+  if (asteroid.scale == 1.5) {
+    generateSmallerAsteroid(this.physics, asteroid, 1);
+    dot.setScale(1.5);
+  } else if (asteroid.scale == 1) {
+    generateSmallerAsteroid(this.physics, asteroid, 0.5);
+    dot.setScale(1.2);
+  }
 }
 
+/**
+ *
+ * @param {Le vaisseau} ship
+ */
 function killPlayer(ship) {
+  // empèche que le vaisseau meurt plusieurs fois à la suite
   if (ship.alpha == 1 && !shipIsDead) {
     superComboActive = false;
-    if (smallCombo > 0) {
-      comboEnd.play();
-    }
+    if (smallCombo > 0) comboEnd.play();
+
     resetCombo();
     resetComboBar(true);
     superShot = false;
     activateSuperShot = false;
+
     let dot = particles.createEmitter({
       x: ship.x,
       y: ship.y,
@@ -827,7 +880,6 @@ function killPlayer(ship) {
     }, 110);
 
     shipIsDead = true;
-    console.log("ship ded");
     dieSound.play();
     hp--;
     destroyLife();
@@ -859,17 +911,27 @@ function killPlayer(ship) {
     } else {
       resetCombo();
       resetComboBar(true);
-      console.log("T'as perdu mdr");
       ship.disableBody(true, true);
       endGame();
     }
   }
 }
 
+/**
+ *
+ * @param {La valeur maximale de l'interval} max
+ * @returns Un nombre aléatoire entre 0 et valeur max - 1
+ */
 function getRandomInt(max) {
   return Math.floor(Math.random() * Math.floor(max));
 }
 
+/**
+ *
+ * @param {Le nombre} number
+ * @param {La taille du score à renvoyer} size
+ * @returns un score formaté (ex zeroPad(12, 6) => 000012)
+ */
 function zeroPad(number, size) {
   let stringNumber = String(number);
   while (stringNumber.length < (size || 2)) {
@@ -878,11 +940,17 @@ function zeroPad(number, size) {
   return stringNumber;
 }
 
+/**
+ * Enlève une vie sur le groupe des vies
+ */
 function destroyLife() {
   shipHpGroup.getChildren()[shipHpGroup.getChildren().length - 1].destroy();
 }
 
-// Fonctionne aussi bien pour l'initialisation de vie qu'à un ajout via powerup
+/**
+ * Fonctionne aussi bien pour l'initialisation de vie qu'à un ajout via powerup
+ * @param {Le nombre de vies (int)} numberOfLife
+ */
 function addLife(numberOfLife) {
   if ((shipHpGroup.getChildren().length = 0)) {
     shipHp = shipHpGroup.create(config.width - 30, 25, "shipHp");
@@ -890,17 +958,21 @@ function addLife(numberOfLife) {
     hp++;
   } else {
     for (let i = 0; i < numberOfLife; i++) {
-      hp++;
       shipHp = shipHpGroup.create(
         config.width - 30 - shipHpGroup.getChildren().length * 45,
         25,
         "shipHp"
       );
       shipHp.setScale(0.4);
+      hp++;
     }
   }
 }
 
+/**
+ * Fonction pour jouer la musique du jeu
+ * La musique fait deux notes, et on augmente sa cadence au fûr et à mesure du jeu
+ */
 function playMusic() {
   beat1.play();
   setTimeout(() => {
@@ -913,11 +985,17 @@ function playMusic() {
   }, speedRate);
 }
 
+/**
+ * Déclenché quand il y a un Game Over
+ */
 function endGame() {
   ifActive = false;
   readyToReset = true;
-  let scoreFormated = zeroPad(score, 6);
+
   endText.setText("GAME OVER");
+  endTextScore.setText(`SCORE:${zeroPad(score, 6)}`);
+
+  //Vérifie si le classement est disponible, sinon ne l'affiche pas
   if (isScoreListAvaible) {
     scoreListRectangle.active = true;
     checkBestScore(score, scoreList);
@@ -927,6 +1005,7 @@ function endGame() {
     endTextReturn.y -= 160;
   }
 
+  // Vérifie si il y a un nouveau HS et agit en conséquences
   if (!highScoreId) {
     endTextReturn.setText("PRESS R TO RESTART");
     blinkTextFunction(endTextReturn, 600);
@@ -937,15 +1016,22 @@ function endGame() {
     highScoreText.setText("New high score");
     blinkTextFunction(highScoreText, 600, true);
   }
-  endTextScore.setText(`SCORE:${scoreFormated}`);
 }
 
+/**
+ * Première fonction du reset de la partie
+ * (Le reset de la partie ce fait en 3 temps :
+ * - resetGameBegin
+ * - cleanAsteroids
+ * - resetGameEnd
+ * )
+ */
 function resetGameBegin() {
   readyToReset = false;
   shipIsDead = false;
   scoreListRectangle.active = false;
   scoreListRectangle.visible = false;
-  temp = true;
+  firstUpdate = true;
 
   if (highScoreId) {
     endText.y += 20;
@@ -971,29 +1057,45 @@ function resetGameBegin() {
   highScoreText.setText("");
   scoreListEnter.setText("");
   endTextReturn.setText("");
+
   let size = asteroidsGroup.children.size;
   let i = 0;
   cleanAsteroids(i, size, 100);
 }
 
+/**
+ * Seconde partie du reset
+ * @param {itérateur} i
+ * @param {la taille du groupe d'astéroides} size
+ * @param {le délais entre chaque explosion} delay
+ */
 function cleanAsteroids(i, size, delay) {
   setTimeout(() => {
     resetAsteroid.play();
     resetAsteroidPitch += 100;
+
     resetAsteroid.detune = resetAsteroidPitch;
     asteroidsGroup.getChildren()[0].destroy();
+
     i++;
     i == size ? resetGameEnd() : cleanAsteroids(i, size, delay);
   }, delay);
 }
 
+/**
+ * La dernière partie du reset
+ * Remet les variables à leurs valeurs initiales et relance la partie
+ * @param {Permet de savoir si la fonction est un lancement de partie ou un reset} isInitiate
+ */
 function resetGameEnd(isInitiate = false) {
+  // On remet les valeurs des variable à leurs initiale
   speedRate = 1100;
   activateSuperShot = false;
   numberOfAsteroids = 4;
   score = 0;
   resetAsteroidPitch = 0;
 
+  // Si on est au lancement de la partie
   if (isInitiate) {
     asteroidWrap = false;
     var tween = this.GLOBAL_Tween.add({
@@ -1020,23 +1122,27 @@ function resetGameEnd(isInitiate = false) {
       callbackScope: this,
     });
 
+    // Si le classement est disponible, affiche le meilleur score, 0.8 seconde après
     if (isScoreListAvaible) {
       setTimeout(() => {
         showBestScoreText();
       }, 800);
     }
   } else {
-    text.setText("SCORE:000000");
+    scoreText.setText("SCORE:000000");
     addLife(3);
   }
 
+  // Met le vaiseau à la verticale
   ship.angle = -90;
 
+  // On positionne le vaisseau en bas de l'écran, hors du cadre du jeu
   let x = config.width / 2;
   let y = config.height + 20;
   ship.enableBody(true, x, y, true, true);
   ship.alpha = 0.5;
 
+  // On joue le son du vaiseau en décalé pour que ce soit un peu plus agréable à écouter
   setTimeout(() => {
     startShip.play();
   }, 100);
@@ -1044,17 +1150,22 @@ function resetGameEnd(isInitiate = false) {
   var tween = this.GLOBAL_Tween.add({
     targets: ship,
     y: config.height / 2,
-    ease: isInitiate ? "Quad.easeInOut" : "Power1",
-    duration: isScoreListAvaible && isInitiate ? 2500 : 1500,
+    ease: isInitiate ? "Quad.easeInOut" : "Power1", // Change la transition du vaiseau si on lance la partie, ou si c'est pendant un respawn
+    duration: isScoreListAvaible && isInitiate ? 2500 : 1500, // La durée change si on peut afficher le meilleur score
     repeat: 0,
     onComplete: function () {
+      // Lancement de la partie
       ship.body.velocity.y = 0;
       ship.alpha = 1;
       ifActive = true;
+
       playMusic();
+
       generateAsteroid(GLOBAL_Physics, numberOfAsteroids);
+
+      // Lancé au lancement de la partie
       if (isInitiate) {
-        text.setText("SCORE:000000");
+        scoreText.setText("SCORE:000000");
         addLife(3);
         comboBarGroup.setVisible(true);
         comboCheckpoint.setVisible(true);
@@ -1065,9 +1176,16 @@ function resetGameEnd(isInitiate = false) {
   });
 }
 
+/**
+ * Pour faire clignoter du texte
+ * @param {Le texte à faire clignoter} blinkText
+ * @param {Le delais entre chaque blink} delay
+ * @param {Utilisé dans la fonction pour le clignotement} blinker
+ */
 function blinkTextFunction(blinkText, delay, blinker = false) {
   metronom = blinker;
   if (blinkText.text != "") {
+    // La fonction s'arrête automatiquement dès que le texte devient vide
     setTimeout(() => {
       blinkText.setVisible(metronom);
       blinkTextFunction(blinkText, delay, !metronom);
@@ -1077,9 +1195,15 @@ function blinkTextFunction(blinkText, delay, blinker = false) {
   }
 }
 
+/**
+ * Pour faire clignoter la barre de combo lors du SuperCombo
+ * @param {Le delais entre chaque blink} delay
+ * @param {Utilisé dans la fonction pour le clignotement} blinker
+ */
 function blinkComboBar(delay, blinker = false) {
   metronom = blinker;
   if (superComboActive) {
+    // Désactive le clignotement quand on est plus en SuperCombo
     setTimeout(() => {
       for (let i = 0; i < 10; i++) {
         metronom
@@ -1094,6 +1218,9 @@ function blinkComboBar(delay, blinker = false) {
   }
 }
 
+/**
+ * Fait apparaitre la barre de combo
+ */
 function generateComboBar() {
   for (let i = 0; i < 10; i++) {
     comboBar = comboBarGroup.create(
@@ -1108,6 +1235,10 @@ function generateComboBar() {
   }
 }
 
+/**
+ *
+ * @param {La valeur du combo} combo
+ */
 function updateComboBar(combo) {
   if (combo <= 10) {
     for (let i = 0; i < combo; i++) {
@@ -1119,6 +1250,10 @@ function updateComboBar(combo) {
   }
 }
 
+/**
+ * Réinitialise le combo
+ * @param {Si c'est un reset partiel ou total du combo} fullreset
+ */
 function resetCombo(fullreset = false) {
   console.log("combo reset");
   smallCombo = 0;
@@ -1129,6 +1264,10 @@ function resetCombo(fullreset = false) {
   resetComboBar(fullreset);
 }
 
+/**
+ *
+ * @param {Si c'est un reset partiel ou total du combo} fullreset
+ */
 function resetComboBar(fullreset = false) {
   comboCheckpoint.alpha = 0.4;
 
@@ -1139,6 +1278,10 @@ function resetComboBar(fullreset = false) {
   checkpoint = false;
 }
 
+/**
+ * Joue le son du SuperCombo
+ * @param {Durée du son} duration
+ */
 function playSuperComboSound(duration) {
   if (superComboActive) {
     superCombo.play();
@@ -1148,6 +1291,10 @@ function playSuperComboSound(duration) {
   }
 }
 
+/**
+ * Activé pendant le lancement de la partie,
+ * Fait déscendre les astéroides hors de l'écran de jeu, puis les détruit
+ */
 function slideDown() {
   for (let i = 0; i < asteroidsGroup.getChildren().length; i++) {
     let children = asteroidsGroup.getChildren()[i];
@@ -1176,12 +1323,16 @@ function generateScores(list) {
     `);
 }
 
+/**
+ * Vérifie si le score du joueur dépasse un score du classement
+ * @param {Le score du joueur} score
+ * @param {Le classement} list
+ */
 function checkBestScore(score, list) {
   let isNewHighScore = false;
   let i = 0;
   let indexOfNewHighScore = null;
 
-  // TODO : améliorer l'algo pour quand le score est plus petit
   if (score > 0) {
     while (!isNewHighScore && i < 5) {
       if (score > +list[i].score) {
@@ -1197,6 +1348,9 @@ function checkBestScore(score, list) {
   }
 }
 
+/**
+ * Lance l'update du classement, quand il y a un nouvel HS
+ */
 function updateScores() {
   readyToType = true;
   scoreListRectangle.y = scoreListRectangleY + 45 * highScoreId - 1;
@@ -1205,8 +1359,11 @@ function updateScores() {
   updateScoreDisplay();
 }
 
-let temp = true;
+let firstUpdate = true;
 
+/**
+ * Actualise l'affichage du classement, en prenant en compte la saisie de l'utilisateur
+ */
 function updateScoreDisplay() {
   let scoreFormated = zeroPad(score, 6);
   let scoreNameDisplay = scoreName;
@@ -1219,8 +1376,12 @@ function updateScoreDisplay() {
     }
   }
 
-  if (temp) {
-    temp = false;
+  /**
+   * Le contenu du if permet de faire un nouveau classement en décallant les scores inférieurs au HS de un cran
+   * et ensuite coupant ceux qui sont en dehors du tableau de 5 éléments
+   */
+  if (firstUpdate) {
+    firstUpdate = false;
     let newScoreList = [];
 
     for (let i = 0; i < highScoreId; i++) {
@@ -1245,28 +1406,26 @@ function updateScoreDisplay() {
       });
     }
 
-    console.log(newScoreList);
     newScoreList = newScoreList.slice(0, 5);
-    console.log(newScoreList);
     scoreList = newScoreList;
   } else {
     scoreList[highScoreId].score = scoreFormated;
     scoreList[highScoreId].name = scoreNameDisplay;
   }
 
+  // On set les id des scores correctement (de 1 à 5)
   for (i = 1; i < 6; i++) {
     scoreList[i - 1].id = i;
   }
 
-  scoreListText.setText(`
-    ${scoreList[0].id} ${scoreList[0].name}....${scoreList[0].score}\n
-    ${scoreList[1].id} ${scoreList[1].name}....${scoreList[1].score}\n
-    ${scoreList[2].id} ${scoreList[2].name}....${scoreList[2].score}\n
-    ${scoreList[3].id} ${scoreList[3].name}....${scoreList[3].score}\n
-    ${scoreList[4].id} ${scoreList[4].name}....${scoreList[4].score}\n
-    `);
+  generateScores(scoreList);
 }
 
+/**
+ *
+ * @param {Le delais en ms} delay
+ * @param {Utilisé dans la fonction pour le clignotement} blinker
+ */
 function blinkHighScoreRectangle(delay, blinker = true) {
   blinker = !blinker;
   scoreListRectangle.visible = true;
@@ -1283,7 +1442,9 @@ function blinkHighScoreRectangle(delay, blinker = true) {
   }
 }
 
-// fonction de keypress
+/**
+ * EventListener qui se déclange quand on appuie sur une touche
+ */
 document.addEventListener("keydown", (event) => {
   if (readyToType) {
     const keyCode = event.code;
@@ -1313,6 +1474,11 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
+/**
+ * Vérifie si l'utilisateur rentre une lettre (fonctionne en azerty et en qwerty)
+ * @param {La touche rentrée par l'utilisateur} key
+ * @returns true si la touche est valide et false si ce n'est pas le cas
+ */
 function checkGoodKey(key) {
   const keyCode = key.code;
   const keyValue = key.key;
@@ -1344,7 +1510,12 @@ function checkGoodKey(key) {
   return value;
 }
 
+/**
+ * Envoie le score dans notre API, qui le mettra dans la BDD
+ * (Api => server.js)
+ */
 function sendScore() {
+  // On reset les valeurs de saisie
   readyToType = false;
   readyToSubmit = false;
   readyToSend = true;
@@ -1359,11 +1530,18 @@ function sendScore() {
 
   console.log(scoreList);
   scoreSent.play();
+
   scoreListEnter.setText("SCORE SAVED");
   endTextReturn.setText("PRESS R TO RESTART");
+
   blinkTextFunction(endTextReturn, 600);
 }
 
+/**
+ * Permet de récupérer la liste des scores, sous un format tableau d'objets
+ * Les scores sont stockés dans la bdd, puis sont récupéré via une api
+ * (Api => server.js)
+ */
 function getScoreList() {
   fetch("http://127.0.0.1:3000/scores")
     .then((response) => response.json())
@@ -1382,6 +1560,9 @@ function getScoreList() {
     );
 }
 
+/**
+ * Au lancement de la partie, affiche le meilleur score pour taunt le joueur
+ */
 function showBestScoreText() {
   bestScoreTextLabel.setText("High score");
   bestScoreText.setText(`${bestScore.name} - ${bestScore.score}`);
@@ -1414,6 +1595,11 @@ function showBestScoreText() {
   });
 }
 
+/**
+ * Permet de simplifier un peu la fonction showBestScoreText()
+ * @param {cible (en l'occurence, le bestScoreText)} target
+ * @param {la position y voulue} y
+ */
 function showBestScoreTextTween(target, y) {
   var tween = this.GLOBAL_Tween.add({
     targets: target,
@@ -1428,4 +1614,38 @@ function showBestScoreTextTween(target, y) {
   });
 }
 
+/**
+ * Ajoute le score voulu à notre score total
+ * @param {Le score, si non renseigné est égal à 16} number
+ */
+function addScore(number = 16) {
+  score += number * comboMultiplier;
+  scoreText.setText(`SCORE:${zeroPad(score, 6)}`);
+  // Valeurs pour la fonction d'animation de score
+  // const oldScore = score;
+  // increment(number, oldScore);
+}
+
+// Fonction qui marche pas trop, pas toucher pour le moment
+let incrementVar = 0;
+/**
+ * Fonction pour faire une animation quand on augmente de score
+ * ! Mais elle ne fonctionne pas très bien pour le moment, donc à ne pas utiliser
+ * @param {La valeur du score} number
+ * @param {L'ancien score} oldScore
+ */
+function increment(number, oldScore) {
+  if (incrementVar <= number) {
+    scoreText.setText(`SCORE:${zeroPad(oldScore + incrementVar, 6)}`);
+    incrementVar++;
+    setTimeout(() => {
+      increment(number, oldScore);
+    }, 10);
+  } else {
+    incrementVar = 0;
+    console.log(score);
+  }
+}
+
+// On get le temps actuel
 getCurrentTime();
