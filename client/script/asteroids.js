@@ -1526,10 +1526,9 @@ function sendScore() {
   fetch("http://127.0.0.1:3000/scores", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    // TODO: n'envoyer QUE le score et le nom
-    // EXAMPLE: { name: "theo", score: 69420 }
     body: JSON.stringify(apiScore),
   })
+    // TODO: update score list from the response
     .then(console.log("Score sent !"))
     .catch((error) => console.error("Erreur : " + error));
 
