@@ -1520,7 +1520,7 @@ function sendScore() {
   readyToSubmit = false;
   readyToSend = true;
 
-  const apiScore = [scoreName, zeroPad(score, 6)];
+  const apiScore = { name: scoreName, score };
 
   // bip bip c'est la query
   fetch("http://127.0.0.1:3000/scores", {
