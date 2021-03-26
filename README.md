@@ -4,7 +4,7 @@ Fait en +60h avec phaser.js, pour un projet d'école
 
 ## Jouer au jeu
 
-Vous pouvez jouer au jeu directement depuis votre navigateur, en cliquant [ici](https://theomigeat.com/asteroids/)
+Vous pouvez jouer au jeu directement depuis votre navigateur, en cliquant [ici](http://theo.anawens.fr/)
 
 ## But du jeu
 
