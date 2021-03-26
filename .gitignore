@@ -1,3 +1,4 @@
-node_modules
-spacepixels-0.2.0
-sound/trucs
+node_modules/
+client/spacepixels-0.2.0/
+client/sound/trucs/
+.env

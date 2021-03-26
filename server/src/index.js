@@ -3,30 +3,27 @@ import mariadb from "mariadb";
 import fastifycors from "fastify-cors";
 
 const pool = mariadb.createPool({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "scores",
-  connectionLimit: 5,
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
 });
 
 async function start() {
   const app = fastify();
-  app.register(fastifycors, {
-    origin: true,
-  });
 
-  let conn = await pool.getConnection();
+  app.register(fastifycors, { origin: true });
 
   app.get("/scores", async (request, response) => {
+    const conn = await pool.getConnection();
     const rows = await conn.query("SELECT * FROM `scoresList`");
     response.send(rows);
     conn.release();
   });
 
   app.post("/scores", async (request, response) => {
+    const conn = await pool.getConnection();
     const data = JSON.parse(request.body);
-    console.log(data);
 
     const res = await conn.query(
       `INSERT INTO scoreslist (id, name, score)
@@ -47,25 +44,4 @@ async function start() {
   console.log("listening on", listen);
 }
 
-start();
-
-/*
-async function asyncFunction() {
-  let conn;
-  try {
-    conn = await pool.getConnection();
-    const rows = await conn.query("SELECT 1 as val");
-    // rows: [ {val: 1}, meta: ... ]
-
-    const res = await conn.query("INSERT INTO myTable value (?, ?)", [
-      1,
-      "mariadb",
-    ]);
-    // res: { affectedRows: 1, insertId: 1, warningStatus: 0 }
-  } catch (err) {
-    throw err;
-  } finally {
-    if (conn) conn.release(); //release to pool
-  }
-}
-*/
+start().catch(console.error);
