@@ -1549,19 +1549,20 @@ function sendScore() {
 function getScoreList() {
   fetch("http://127.0.0.1:3000/scores")
     .then((response) => response.json())
-    .then(
-      (response) => (
-        (scoreList = response),
-        (isScoreListAvaible = true),
-        (bestScore = scoreList[0]),
-        console.log(scoreList)
-      )
-    )
-    .catch(
-      (error) => console.error("Erreur : " + error),
-      (isScoreListAvaible = false),
-      (bestScore = null)
-    );
+    .then((response) => {
+      scoreList = response.map((score) => ({
+        ...score,
+        score: zeroPad(score.score, 6),
+      }));
+      isScoreListAvaible = true;
+      bestScore = scoreList[0];
+      console.log(scoreList);
+    })
+    .catch((error) => {
+      console.error("Erreur : " + error);
+      isScoreListAvaible = false;
+      bestScore = null;
+    });
 }
 
 /**
