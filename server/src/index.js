@@ -70,7 +70,7 @@ async function start() {
     }
   );
 
-  const listen = await app.listen(3000);
+  const listen = await app.listen(process.env.PPE_PORT || 8080);
   console.log("listening on", listen);
 }
 
