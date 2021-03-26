@@ -2,14 +2,15 @@
   "name": "server",
   "version": "1.0.0",
   "description": "pour les scores",
-  "main": "index.js",
+  "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node -r dotenv/config src/index.js"
   },
   "author": "Théo",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^8.2.0",
     "fastify": "^3.14.0",
     "fastify-cors": "^5.2.0",
     "mariadb": "^2.5.3"
