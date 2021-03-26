@@ -1523,6 +1523,9 @@ function sendScore() {
   // bip bip c'est la query
   fetch("http://127.0.0.1:3000/scores", {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
+    // TODO: n'envoyer QUE le score et le nom
+    // EXAMPLE: { name: "theo", score: 69420 }
     body: JSON.stringify(scoreList),
   })
     .then(console.log("Score sent !"))
