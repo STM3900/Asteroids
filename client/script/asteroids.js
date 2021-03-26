@@ -1520,10 +1520,15 @@ function sendScore() {
   readyToSubmit = false;
   readyToSend = true;
 
+  const apiScore = { name: scoreName, score };
+
   // bip bip c'est la query
   fetch("http://127.0.0.1:3000/scores", {
     method: "POST",
-    body: JSON.stringify(scoreList),
+    headers: { "Content-Type": "application/json" },
+    // TODO: n'envoyer QUE le score et le nom
+    // EXAMPLE: { name: "theo", score: 69420 }
+    body: JSON.stringify(apiScore),
   })
     .then(console.log("Score sent !"))
     .catch((error) => console.error("Erreur : " + error));
