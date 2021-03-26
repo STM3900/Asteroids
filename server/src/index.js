@@ -52,7 +52,7 @@ async function start() {
         const scores = rows.slice(0, 5);
 
         await conn.query(
-          `INSERT INTO scoreslist (id, name, score)
+          `INSERT INTO scoresList (id, name, score)
         VALUES (1, ?, ?),
         (2, ?, ?),
         (3, ?, ?),
