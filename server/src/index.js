@@ -1,7 +1,12 @@
+/**
+ * API du jeu, fait avec l'aide et les conseils de @Vahelnir
+ */
+
 import fastify from "fastify";
 import mariadb from "mariadb";
 import fastifycors from "fastify-cors";
 
+// Création de la pool de la bdd (elle est faite en MySQL)
 const pool = mariadb.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -11,21 +16,23 @@ const pool = mariadb.createPool({
 
 async function start() {
   const app = fastify();
-
   app.register(fastifycors, { origin: true });
 
+  // On récupère tous les scores en faisant un select
   app.get("/scores", async (request, response) => {
     const conn = await pool.getConnection();
     const rows = await conn.query(
       "SELECT * FROM `scoresList` ORDER BY `score` DESC"
     );
-    response.send(rows);
-    conn.release();
+    response.send(rows); // On envoit la réponse au client
+    conn.release(); // Et on relache la pool
   });
 
   app.post(
     "/scores",
     {
+      // On déclare le schéma de nos données,
+      // pour savoir ce que l'ont va récupérer
       schema: {
         body: {
           type: "object",

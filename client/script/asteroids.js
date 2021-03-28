@@ -48,6 +48,7 @@ var endTextReturn; // Texte affiché sur l'écran de fin, affiche "Press r to re
 var titleText; // Le titre du jeu, affiché sur l'écran titre (logique)
 var startText; // Texte affiché sur l'écran titre : "press space to start"
 var initiateGame = false; // Variable indiquant si la game est initialisé (quand on appuie sur espace)
+var authorText; // Texte affichant par qui a été fait le jeu
 
 // Score
 var score = 0; // Le score du joueur
@@ -135,6 +136,7 @@ typingTab = [];
 // Autre
 var readyToReset = false; // Indique si le jeu est prêt à être reset
 var cursors; // Permet de get les touches
+var infoBar; // Barre d'information sur le jeu;
 let keyR; // Permet de get la touche r
 
 // Particle
@@ -176,6 +178,7 @@ function preload() {
     frameHeight: 90,
   });
   this.load.image("asteroid", "img/sprite/asteroid.png"); // Les Asteroids
+  this.load.image("infoBar", "img/infobar.jpg"); // La barre d'info
   this.load.bitmapFont("pixelFont", "img/font/font.png", "img/font/font.xml"); // La bitmap de texte
 
   // Chargement de l'audio
@@ -304,6 +307,14 @@ function create() {
   comboCheckpoint.setScale(1.5);
   comboCheckpoint.alpha = 0.4;
 
+  infoBar = this.physics.add.sprite(
+    this.cameras.main.worldView.x + this.cameras.main.width / 2,
+    30,
+    "infoBar"
+  );
+
+  infoBar.setScale(0.6);
+
   // On détruit les sprites que l'ont utilise pas (sert pour les groupes)
   shipHp.destroy();
   bullet.destroy();
@@ -412,6 +423,10 @@ function create() {
       "PRESS SPACE TO START",
       16
     )
+    .setOrigin(0.5);
+
+  authorText = this.add
+    .bitmapText(60, 790, "pixelFont", "By Theo", 12)
     .setOrigin(0.5);
 
   bestScoreText = this.add
@@ -1006,7 +1021,7 @@ function endGame() {
   }
 
   // Vérifie si il y a un nouveau HS et agit en conséquences
-  if (!highScoreId) {
+  if (highScoreId == null) {
     endTextReturn.setText("PRESS R TO RESTART");
     blinkTextFunction(endTextReturn, 600);
     endTextReturn.y -= 40;
@@ -1098,29 +1113,11 @@ function resetGameEnd(isInitiate = false) {
   // Si on est au lancement de la partie
   if (isInitiate) {
     asteroidWrap = false;
-    var tween = this.GLOBAL_Tween.add({
-      targets: titleText,
-      y: 1000 + titleText.y,
-      ease: "Quad.easeIn",
-      duration: 1500,
-      repeat: 0,
-      onComplete: function () {
-        titleText.setText("");
-      },
-      callbackScope: this,
-    });
 
-    var tween = this.GLOBAL_Tween.add({
-      targets: startText,
-      y: 1000 + startText.y,
-      ease: "Quad.easeIn",
-      duration: 1500,
-      repeat: 0,
-      onComplete: function () {
-        startText.setText("");
-      },
-      callbackScope: this,
-    });
+    slideDownText(titleText);
+    slideDownText(startText);
+    slideDownText(authorText);
+    slideDownText(infoBar, true);
 
     // Si le classement est disponible, affiche le meilleur score, 0.8 seconde après
     if (isScoreListAvaible) {
@@ -1310,6 +1307,26 @@ function slideDown() {
       callbackScope: this,
     });
   }
+}
+
+/**
+ * Activé pendant le lancement de la partie,
+ * Fait déscendre le texte hors de l'écran puis le met à vide ou le détruit si c'est une image
+ * @param {Le text (ou l'image)} text
+ * @param {Si le text est une image (est à false par défaut)} isImg
+ */
+function slideDownText(text, isImg = false) {
+  var tween = this.GLOBAL_Tween.add({
+    targets: text,
+    y: 1000 + text.y,
+    ease: "Quad.easeIn",
+    duration: 1500,
+    repeat: 0,
+    onComplete: function () {
+      isImg ? text.destroy() : text.setText("");
+    },
+    callbackScope: this,
+  });
 }
 
 //TODO : REVOIR COMMENT FAIRE LA DISPOSITION DE TEXTE AVEC UN TABLEAU ETOU
@@ -1523,7 +1540,7 @@ function sendScore() {
   const apiScore = { name: scoreName, score };
 
   // bip bip c'est la query
-  fetch("http://127.0.0.1:3000/scores", {
+  fetch("http://127.0.0.1:8080/scores", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(apiScore),
@@ -1547,7 +1564,7 @@ function sendScore() {
  * (Api => server.js)
  */
 function getScoreList() {
-  fetch("http://127.0.0.1:3000/scores")
+  fetch("http://127.0.0.1:8080/scores")
     .then((response) => response.json())
     .then((response) => {
       scoreList = response.map((score) => ({
