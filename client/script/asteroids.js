@@ -1633,5 +1633,14 @@ function showBestScoreTextTween(target, y) {
   });
 }
 
+/**
+ * Ajoute le score voulu à notre score total
+ * @param {Le score, si non renseigné est égal à 16} number
+ */
+function addScore(number = 16) {
+  score += number * comboMultiplier;
+  scoreText.setText(`SCORE:${zeroPad(score, 6)}`);
+}
+
 // On get le temps actuel
 getCurrentTime();
