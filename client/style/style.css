@@ -16,6 +16,18 @@ body {
   height: 100vh;
 }
 
+a {
+  color: black;
+  font-size: 24px;
+}
+
+footer {
+  position: absolute;
+  display: inline;
+  bottom: 10px;
+  right: 10px;
+}
+
 .super-shot {
   filter: invert(1);
 }
