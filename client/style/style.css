@@ -24,8 +24,16 @@ body {
   transition: 0.3s;
 }
 
+canvas {
+  transition: 0.3s;
+}
+
 @media screen and (max-width: 1440px) {
   .asteroids-class {
+    transform: scale(0.8);
+  }
+
+  canvas {
     transform: scale(0.8);
   }
 }
@@ -34,10 +42,18 @@ body {
   .asteroids-class {
     transform: scale(0.6);
   }
+
+  canvas {
+    transform: scale(0.6);
+  }
 }
 
 @media screen and (max-width: 860px) {
   .asteroids-class {
+    transform: scale(0.4);
+  }
+
+  canvas {
     transform: scale(0.4);
   }
 }
