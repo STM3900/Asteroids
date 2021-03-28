@@ -1062,7 +1062,7 @@ function resetGameBegin() {
   }
 
   getScoreList();
-  highScoreId = 0;
+  highScoreId = null;
   readyToSend = false;
   scoreName = "";
 
