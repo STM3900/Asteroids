@@ -426,7 +426,7 @@ function create() {
     .setOrigin(0.5);
 
   authorText = this.add
-    .bitmapText(60, 790, "pixelFont", "By Theo", 12)
+    .bitmapText(100, 790, "pixelFont", "By Theo Migeat", 10)
     .setOrigin(0.5);
 
   bestScoreText = this.add
@@ -527,6 +527,8 @@ function create() {
 
   // génération des asteroids du menu
   generateAsteroid(this.physics, 8);
+
+  game.paused = true;
 }
 function update() {
   // C'est la boucle principale du jeu
@@ -665,7 +667,6 @@ function update() {
   if (asteroidWrap) this.physics.world.wrap(asteroidsGroup, 50);
 
   if (keyR.isDown && readyToReset && (readyToSend || !highScoreId)) {
-    console.log("Reset !");
     resetGameBegin();
   }
 }
@@ -809,7 +810,6 @@ function killAsteroid(projectile, asteroid) {
     blinkComboBar(100);
 
     cooldown = 100; // On fait tirer le vaiseau beaucoup plus rapidement
-    console.log("SUPER COMBOOOO");
     playSuperComboSound(1600);
 
     setTimeout(() => {
@@ -1252,7 +1252,6 @@ function updateComboBar(combo) {
  * @param {Si c'est un reset partiel ou total du combo} fullreset
  */
 function resetCombo(fullreset = false) {
-  console.log("combo reset");
   smallCombo = 0;
   checkpoint = false;
   comboStatusText.setText("");
@@ -1549,7 +1548,6 @@ function sendScore() {
     .then(console.log("Score sent !"))
     .catch((error) => console.error("Erreur : " + error));
 
-  console.log(scoreList);
   scoreSent.play();
 
   scoreListEnter.setText("SCORE SAVED");
@@ -1573,7 +1571,6 @@ function getScoreList() {
       }));
       isScoreListAvaible = true;
       bestScore = scoreList[0];
-      console.log(scoreList);
     })
     .catch((error) => {
       console.error("Erreur : " + error);
@@ -1634,39 +1631,6 @@ function showBestScoreTextTween(target, y) {
     },
     callbackScope: this,
   });
-}
-
-/**
- * Ajoute le score voulu à notre score total
- * @param {Le score, si non renseigné est égal à 16} number
- */
-function addScore(number = 16) {
-  score += number * comboMultiplier;
-  scoreText.setText(`SCORE:${zeroPad(score, 6)}`);
-  // Valeurs pour la fonction d'animation de score
-  // const oldScore = score;
-  // increment(number, oldScore);
-}
-
-// Fonction qui marche pas trop, pas toucher pour le moment
-let incrementVar = 0;
-/**
- * Fonction pour faire une animation quand on augmente de score
- * ! Mais elle ne fonctionne pas très bien pour le moment, donc à ne pas utiliser
- * @param {La valeur du score} number
- * @param {L'ancien score} oldScore
- */
-function increment(number, oldScore) {
-  if (incrementVar <= number) {
-    scoreText.setText(`SCORE:${zeroPad(oldScore + incrementVar, 6)}`);
-    incrementVar++;
-    setTimeout(() => {
-      increment(number, oldScore);
-    }, 10);
-  } else {
-    incrementVar = 0;
-    console.log(score);
-  }
 }
 
 // On get le temps actuel
