@@ -19,3 +19,25 @@ body {
 .super-shot {
   filter: invert(1);
 }
+
+.asteroids-class {
+  transition: 0.3s;
+}
+
+@media screen and (max-width: 1440px) {
+  .asteroids-class {
+    transform: scale(0.8);
+  }
+}
+
+@media screen and (max-width: 1150px) {
+  .asteroids-class {
+    transform: scale(0.6);
+  }
+}
+
+@media screen and (max-width: 860px) {
+  .asteroids-class {
+    transform: scale(0.4);
+  }
+}
