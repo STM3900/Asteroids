@@ -5,12 +5,16 @@
 // - Amélioration de l'affichage
 // - Amélioration du gameplay etou
 
+let scoreUrl = localStorage.getItem("scoreUrl");
+
 // Initialisation du classement pour faire la requete
 let scoreList = [];
 let isScoreListAvaible = false;
 
 // Initialise les valeurs de scoreList en fonction de si l'api fonctionne ou non
-getScoreList();
+if (scoreUrl) {
+  getScoreList();
+}
 
 /**
  * Initialisation des variables et du jeu
@@ -1539,7 +1543,7 @@ function sendScore() {
   const apiScore = { name: scoreName, score };
 
   // bip bip c'est la query
-  fetch("http://127.0.0.1:8080/scores", {
+  fetch(scoreUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(apiScore),
@@ -1562,7 +1566,7 @@ function sendScore() {
  * (Api => server.js)
  */
 function getScoreList() {
-  fetch("http://127.0.0.1:8080/scores")
+  fetch(scoreUrl)
     .then((response) => response.json())
     .then((response) => {
       scoreList = response.map((score) => ({
